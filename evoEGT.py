@@ -75,7 +75,7 @@ def calcFIXM(W,payparam,beta,check=True):
     fixM=fixM/nstr # it can be nstr-1, but not much difference    
     np.fill_diagonal(fixM, 0) # necessary?
     np.fill_diagonal(fixM,1.-np.sum(fixM,axis=1))   
-    return fixM    
+    return fixM,cumD
 
 
 def calcSD(tranM):
@@ -88,14 +88,16 @@ def calcSD(tranM):
     return SD
 
 
-def Wgroup2SD(Wgroup,HZ,payparam,beta,infocheck=True):
+def Wgroup2SD(Wgroup,HZ,payparam,beta,infocheck=True,save=False,M=0):
 # Input: Wgroup[i,j,k,ip] coeficients that will be multiplied by payparam to obtain the payoff that i-type obtains agains j-type when there is k of i-type in the group (k=0..N)
 # Input: HZ if it is a 2-dim array HZ=H (matrix from hypergeometric function H[k,K], k=0..N-1, K=0..Z-1), if it is a scalar HZ=Z and H is calculated    
 # Input: payparam[ip] payoff parameters of the model, selection strength for Fermi
 # Input: infocheck check that inputs are coherent and show information about the parameters
 # Output: fixM probability transition matrix (calculated with fixation probabilities and Fermi rule), from row to columns 
     Wpop=calcWpop(Wgroup,HZ,info=infocheck) 
-    fixM=calcFIXM(Wpop,payparam,beta,check=infocheck)
+    fixM,cumD=calcFIXM(Wpop,payparam,beta,check=infocheck)
+    if save:
+        np.save(f'test/cum_test_data_{M}',cumD)
     SD=calcSD(fixM)
     return SD, fixM
 
