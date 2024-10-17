@@ -2,7 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
 
-file = 'results/h4/cl/res_4strats_M0_f0_baseline'
+def gaussian(x, mu, sig):
+    return np.exp(-((x - mu) ** 2) / (2 * (sig ** 2))) / (np.sqrt(2 * np.pi) * sig)
+
+file = 'results/multileader/cl/res_4strats_M0_f0'
 data = np.load(file + '.npy')
 
 nr = 2
@@ -32,42 +35,14 @@ for idr, r in enumerate(rv):
     j = idr % nc
     ax=axs[i,j]
 
-    res = np.zeros((pSv.shape[0]))
-    for strat in range(4):
-        for idps, pS in enumerate(pSv):
-            pF = np.zeros((2,2))
-            stratW = strat%2
-            stratS = strat//2
-
-            pW = 1 - pS
-            Nw = N * pW
-            Ns = N * pS
-
-            Nwc = pW * (N * stratW)
-            Nwd = (N * pW) - Nwc
-            Nsc = pS * (N * stratS)
-            Nsd = (N * pS) - Nsc
-            Nc = Nwc + Nsc
-            Nd = Nwd + Nsd
-
-            cl = (Nc*eps1 + Nd*eps) / N
-
-            res[idps] += cl * data[idr, 0, idps, strat]
-
-    ax.plot(res, label='No Leader', color='gold')
-
     for iddl, deltaL in enumerate(deltaLv):
-        deltaF = 8
-        ss = 1/(1+np.exp(-deltaL))
-        sw=1-ss
+        deltaF = deltaL
+        pleadS = 1/(1+np.exp(-deltaL))
+        pleadW=1-pleadS
         res = np.zeros((pSv.shape[0]))
         for strat in range(4):
             for idps, pS in enumerate(pSv):
                 pF = np.zeros((2,2))
-                # pF[0,0] = 1/(1+np.exp(-betaF*(f+deltaF)))
-                # pF[1,1] = 1/(1+np.exp(-betaF*(f-deltaF)))
-                # pF[0,1] = 1/(1+np.exp(-betaF*(f+2*deltaF)))
-                # pF[1,0] = 1/(1+np.exp(-betaF*(f-2*deltaF)))
 
                 pF[0,0] = 1/(1+np.exp(-betaF*(f)))
                 pF[1,1] = 1/(1+np.exp(-betaF*(f)))
@@ -86,57 +61,113 @@ for idr, r in enumerate(rv):
                 Nsc = pS * (N * stratS)
                 Nsd = (N * pS) - Nsc
 
-                coops_w = 0
-                coops_s = 0
+                Nwcl = Nwc * pleadW
+                Nscl = Nsc * pleadS
+                Nwdl = Nwd * pleadW
+                Nsdl = Nsd * pleadS
+                Nwl = Nwcl + Nwdl
+                Nsl = Nscl + Nsdl
 
+                pwc = 0; pwd = 0; psc = 0; psd = 0; pwl = 0; psl = 0
                 if Nw > 0:
-                    coops_w = (
-                        (Nwc/Nw)*( # leader is a cooperator
-                            eps1 + 
-                            (1-pF[0,0])*((Nwc-1)*eps1 + Nwd*eps)+
-                            (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
-                        ) + (Nwd/Nw)*( # leader is a defector
-                            eps + 
-                            (1-pF[0,0])*(Nwc*eps1 + (Nwd-1)*eps)+
-                            (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-1)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
-                        )
-                    )
-
+                    pwc = Nwc / Nw
+                    pwd = 1 - pwc
+                    pwl = Nwl / Nw
                 if Ns > 0:
-                    coops_s = (
-                        (Nsc/Ns)*( # leader is a cooperator
-                            eps1 + 
-                            (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*((Nsc-1)*eps1 + Nsd*eps)+
-                            pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)
-                        ) + (Nsd/Ns)*( # leader is a defector
-                            eps + 
-                            (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*(Nsc*eps1 + (Nsd-1)*eps)+
-                            pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-1)*(2*eps*eps1)
+                    psc = Nsc / Ns
+                    psd = 1 - psc
+                    psl = Nsl / Ns
+
+                strengths = np.linspace(0.1, 0.9, N)
+                sPs = gaussian(strengths, 0.5, 0.5)
+                sPs = sPs / sPs.sum()
+                sPw = gaussian(strengths, 0, 0.5)
+                sPw = sPw / sPw.sum()
+                strongS = (sPs * strengths).sum()
+                weakS = (sPw * strengths).sum()
+
+                follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
+                follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
+
+                coop_w = 0
+                coop_s = 0
+
+                # if Nw > 0:
+                #     coop_w = ( # leader is weak
+                #         (Nwcl/Nwl)*( # leader is a cooperator
+                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # TODO: does this formula imply that everyone follows the same leader?
+                #             (1-pF[0,0])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
+                #             (1-pF[1,0])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
+                #             pF[0,0]*(Nw-Nwl)*(eps1**2+eps**2)+pF[1,0]*(Ns-Nsl)*(eps1**2+eps**2)
+                #         ) + (Nwdl/Nwl)*( # leader is a defector
+                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + 
+                #             (1-pF[0,0])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
+                #             (1-pF[1,0])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
+                #             pF[0,0]*(Nw-Nwl)*(2*eps*eps1) + pF[1,0]*(Ns-Nsl)*(2*eps*eps1)
+                #         )
+                #     )
+
+                # if Ns > 0:
+
+                #     coop_s = ( # leader is strong
+                #         (Nscl/Nsl)*( # leader is a cooperator
+                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + 
+                #             (1-pF[0,1])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
+                #             (1-pF[1,1])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
+                #             pF[0,1]*(Nw-Nwl)*(eps1**2+eps**2)+pF[1,1]*(Ns-Nsl)*(eps1**2+eps**2)
+                #         ) + (Nsdl/Nsl)*( # leader is a defector
+                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + 
+                #             (1-pF[0,1])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
+                #             (1-pF[1,1])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
+                #             pF[0,1]*(Nw-Nwl)*(2*eps*eps1) + pF[1,1]*(Ns-Nsl)*(2*eps*eps1)
+                #         )
+                #     )
+                    
+                # weakS = 0.3
+                # strongS = 0.7
+                # cl = (((Nwl * weakS) / (Nwl * weakS + Nsl * strongS)) * coop_w +
+                #            ((Nsl * strongS) / (Nsl * strongS + Nwl * weakS)) * coop_s) / N
+
+                if pS > 0. and pS < 1.:
+
+                    cl = (
+                    (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
+                    (N - Nsl - Nwl) * ( # non leaders
+                        pW * ( # weak
+                            follow_w * ( # choose a weak leader
+                                (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
+                                (pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                            ) + 
+                            follow_s * ( # choose a strong leader
+                                (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
+                                (pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                            )
+                        ) +
+                        pS * ( #strong
+                            follow_w * ( # choose a weak leader
+                                (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
+                                (pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                            ) + 
+                            follow_s * ( # choose a strong leader
+                                (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
+                                (pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                            )                            
                         )
                     )
+                )
 
-                total_s = ss * Ns
-                total_w = sw * Nw
-                pl = 1 / (1+np.exp(-deltaL*pS))
+                    cl = cl / N
+                else:
+                    cl = 0
 
-                cl_nol = (Nwc + Nsc) / N
-
-                cl = (((Nw*sw)/(Nw*sw+Ns*ss))*coops_w + ((Ns*ss)/(Nw*sw+Ns*ss))*coops_s) / N
-                # cl_l = (((Nw*sw)/(Nw*sw+Ns*ss))*coops_w+((Ns*ss)/(Nw*sw+Ns*ss))*coops_s) / N
-                # cl = pl*cl_l + (1-pl)*cl_nol
-
-                res[idps] += cl * data[idr, iddl+1, idps, strat]
+                res[idps] += cl * data[idr, iddl, idps, strat]
             
 
         ax.set_xticks(np.linspace(0, pSv.shape[0]-1, nticksX))
         ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=12)
         ax.set_yticks(np.linspace(0, 1, 3))
         ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
-        # ax.set_ylim(0.0, 1.0)
+        ax.set_ylim(0.0, 1.0)
         ax.plot(res, label='$\Delta_f=\Delta_f=%d$'%deltaF, color=cmap((iddl+1)/(len(deltaLv)+1)))
 
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
@@ -150,6 +181,6 @@ legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+
                           markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(-2.1, -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('fig.png', bbox_inches='tight', dpi=300)
+plt.savefig('multileader_fig.png', bbox_inches='tight', dpi=300)
 
 plt.show()
