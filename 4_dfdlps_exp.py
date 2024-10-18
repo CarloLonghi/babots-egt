@@ -34,22 +34,22 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     import matplotlib.patches as mpatches
     import matplotlib
     fntsize=20
-    nr=1
-    nc=10
-    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(17,5))
+    nr=5
+    nc=2
+    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(6,17))
     f.subplots_adjust(hspace=0.4, wspace=0.2)
     k=-1
     for idx in range(len(rv)):
-        i = 0
+        i = idx // nc
         j = idx % nc
 
-        ax=axs[j]
+        ax=axs[i, j]
         k=k+1
         cmaps=['Greens','Reds','Blues','Purples']
         for strat in range(4):
             step=0.025
             levels = np.arange(0.5-step, 1., step) + step
-            h=ax.contourf(MAT[:,:,j,strat],levels,cmap=cmaps[strat], origin='lower',)
+            h=ax.contourf(MAT[:,:,k,strat],levels,cmap=cmaps[strat], origin='lower',)
         #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
         nticksY=5
         nticksX=3
@@ -58,7 +58,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
         ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=18)
         ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=18)
         ax.set_ylim(0,MAT.shape[1]-1)
-        ax.text(22.5,50,"$r=%d$" % rv[j], size=20)
+        ax.text(22.5,50,"$r=%d$" % rv[k], size=20)
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
         if j==0: 
             ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
