@@ -8,8 +8,8 @@ def gaussian(x, mu, sig):
 file = 'results/multileader/cl/res_4strats_M0_f0'
 data = np.load(file + '.npy')
 
-nr = 2
-nc = 5
+nr = 5
+nc = 2
 fntsize=15
 
 pSv=np.linspace(0.,1.,num=50)
@@ -22,7 +22,7 @@ eps1 = 1 - eps
 rv=np.linspace(1,10,num=10)
 
 
-fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(10,5))
+fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,12))
 fig.subplots_adjust(hspace=0.4, wspace=0.2)
 nticksY=6
 nticksX=3
@@ -92,45 +92,7 @@ for idr, r in enumerate(rv):
                 coop_w = 0
                 coop_s = 0
 
-                # if Nw > 0:
-                #     coop_w = ( # leader is weak
-                #         (Nwcl/Nwl)*( # leader is a cooperator
-                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # TODO: does this formula imply that everyone follows the same leader?
-                #             (1-pF[0,0])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
-                #             (1-pF[1,0])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
-                #             pF[0,0]*(Nw-Nwl)*(eps1**2+eps**2)+pF[1,0]*(Ns-Nsl)*(eps1**2+eps**2)
-                #         ) + (Nwdl/Nwl)*( # leader is a defector
-                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + 
-                #             (1-pF[0,0])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
-                #             (1-pF[1,0])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
-                #             pF[0,0]*(Nw-Nwl)*(2*eps*eps1) + pF[1,0]*(Ns-Nsl)*(2*eps*eps1)
-                #         )
-                #     )
-
-                # if Ns > 0:
-
-                #     coop_s = ( # leader is strong
-                #         (Nscl/Nsl)*( # leader is a cooperator
-                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + 
-                #             (1-pF[0,1])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
-                #             (1-pF[1,1])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
-                #             pF[0,1]*(Nw-Nwl)*(eps1**2+eps**2)+pF[1,1]*(Ns-Nsl)*(eps1**2+eps**2)
-                #         ) + (Nsdl/Nsl)*( # leader is a defector
-                #             (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + 
-                #             (1-pF[0,1])*((Nwc-Nwcl)*eps1 + (Nwd-Nwdl)*eps)+
-                #             (1-pF[1,1])*((Nsc-Nscl)*eps1 + (Nsd-Nsdl)*eps)+
-                #             pF[0,1]*(Nw-Nwl)*(2*eps*eps1) + pF[1,1]*(Ns-Nsl)*(2*eps*eps1)
-                #         )
-                #     )
-                    
-                # weakS = 0.3
-                # strongS = 0.7
-                # cl = (((Nwl * weakS) / (Nwl * weakS + Nsl * strongS)) * coop_w +
-                #            ((Nsl * strongS) / (Nsl * strongS + Nwl * weakS)) * coop_s) / N
-
-                if pS > 0. and pS < 1.:
-
-                    cl = (
+                cl = (
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
                     (N - Nsl - Nwl) * ( # non leaders
                         pW * ( # weak
@@ -156,9 +118,7 @@ for idr, r in enumerate(rv):
                     )
                 )
 
-                    cl = cl / N
-                else:
-                    cl = 0
+                cl = cl / N
 
                 res[idps] += cl * data[idr, iddl, idps, strat]
             
@@ -171,7 +131,7 @@ for idr, r in enumerate(rv):
         ax.plot(res, label='$\Delta_f=\Delta_f=%d$'%deltaF, color=cmap((iddl+1)/(len(deltaLv)+1)))
 
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
-        if j==0: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
+        if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
         ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
 
 legend_elements = [Line2D([], [], marker='s', color='gold', label='No Leader',
@@ -179,7 +139,7 @@ legend_elements = [Line2D([], [], marker='s', color='gold', label='No Leader',
 legend_elements += [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
 legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+1)), label='%d'%deltaLv[idx],
                           markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
-plt.legend( loc='upper center', bbox_to_anchor=(-2.1, -0.6),
+plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
 plt.savefig('multileader_fig.png', bbox_inches='tight', dpi=300)
 
