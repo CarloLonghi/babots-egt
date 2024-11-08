@@ -3,29 +3,21 @@ import evoEGT as evo
 from heterogeneous4 import calcH, calcWCD
 from noleadermodel import calcWCD as calcWCDnoleader
 
-def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,deltaLv,f,betaF):
+def coop_pF_r(rv,M,N,HZ,beta,eps,betav):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
 # Output: matrix with the fraction of cooperators as a function of pF and r
     if np.isscalar(HZ):
         H=calcH(N-1,HZ-1)
 
-    MAT = np.zeros((len(rv), len(deltaLv), len(pSv), 4))
+    MAT = np.zeros((len(rv), len(betav), 4))
 
     for idr, r, in enumerate(rv):
-        print(r)
-        for iddl, deltaL in enumerate(deltaLv):
-            deltaF=deltaL
-            for idps, pS in enumerate(pSv):
-                pF=np.zeros((2,2))
-                pF[0,0] = 1/(1+np.exp(-betaF*(f)))
-                pF[1,1] = 1/(1+np.exp(-betaF*(f)))
-                pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
-                pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
-
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
-                #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
-                SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
-                MAT[idr, iddl, idps] = SD[:,0]
+        for idb, beta in enumerate(betav):
+            print(r, beta)
+            WCD=calcWCD(N,eps,beta,M)
+            #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
+            SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
+            MAT[idr, idb] = SD[:,0]
     return MAT
 
 def plotCOOPheat(MAT,f1v,f2v,sv,label):
@@ -104,12 +96,12 @@ if __name__ == "__main__":
     f=0
     betaF=1
 
-    deltaLv=[0, 1, 2, 4, 8]
-    pSv=np.linspace(0,1.,num=50)
+    #muv=[0, 0.25, 0.5, 0.75, 1.]
+    betav=np.linspace(-5,5.,num=50)
     rv=np.linspace(1,10,num=10)
     
-    labfilenpy='results/multileader/cl/res_4strats_M0_f0'
-    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,deltaLv,f,betaF)
+    labfilenpy='results/multileader/cl/res_4strats_M0_f0_sdist_update'
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps,betav)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')
     

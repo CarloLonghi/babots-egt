@@ -31,7 +31,7 @@ def aeps(pact,eps):
 def transfW2Wgen(Wori):
 # transform WCD (Wori) into W for calcWpop (Wgen) 
     N1=Wori.shape[1]
-    Wgen=np.zeros((2,2,N1,2))-777
+    Wgen=np.zeros((2,2,N1,2))
     Wgen[1,0,:,:]=Wori[1,:,:]
     Wgen[0,1,:,:]=np.flip(Wori[0,:,:],axis=0)
     return Wgen
@@ -102,8 +102,8 @@ def calcWCD(N,eps,pF,delta_l,pS=0.5,M=0.):
 
             if (benefit>=M): WCD[i,k,0]=benefit/N  # only if enough individuals cooperates
             WCD[i,k,1]=cost
-        WCD[1,0,:]=-999
-        WCD[0,N,:]=-999
+        # WCD[1,0,:]=-999
+        # WCD[0,N,:]=-999
     return WCD 
 
 

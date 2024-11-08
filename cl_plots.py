@@ -5,17 +5,18 @@ from matplotlib.lines import Line2D
 def gaussian(x, mu, sig):
     return np.exp(-((x - mu) ** 2) / (2 * (sig ** 2))) / (np.sqrt(2 * np.pi) * sig)
 
-file = 'results/multileader/cl/res_4strats_M0_f0'
+def fermi(x, beta):
+    return 1 / (1 + np.exp(-beta * x))
+
+file = 'results/multileader/cl/res_4strats_M0_f0_sdist_update'
 data = np.load(file + '.npy')
 
 nr = 5
 nc = 2
 fntsize=15
 
-pSv=np.linspace(0.,1.,num=50)
-deltaLv=[0, 1, 2, 4, 8]
-f=0
-betaF=1.
+#muv=[0, 0.25, 0.5, 0.75, 1.]
+betav=np.linspace(-5,5,num=50)
 N = 9
 eps = 0.01
 eps1 = 1 - eps
@@ -35,112 +36,57 @@ for idr, r in enumerate(rv):
     j = idr % nc
     ax=axs[i,j]
 
-    for iddl, deltaL in enumerate(deltaLv):
-        deltaF = deltaL
-        pleadS = 1/(1+np.exp(-deltaL))
-        pleadW=1-pleadS
-        res = np.zeros((pSv.shape[0]))
-        for strat in range(4):
-            for idps, pS in enumerate(pSv):
-                pF = np.zeros((2,2))
-
-                pF[0,0] = 1/(1+np.exp(-betaF*(f)))
-                pF[1,1] = 1/(1+np.exp(-betaF*(f)))
-                pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
-                pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
-                
-                stratW = strat%2
-                stratS = strat//2
-
-                pW = 1 - pS
-                Nw = N * pW
-                Ns = N * pS
-
-                Nwc = pW * (N * stratW)
-                Nwd = (N * pW) - Nwc
-                Nsc = pS * (N * stratS)
-                Nsd = (N * pS) - Nsc
-
-                Nwcl = Nwc * pleadW
-                Nscl = Nsc * pleadS
-                Nwdl = Nwd * pleadW
-                Nsdl = Nsd * pleadS
-                Nwl = Nwcl + Nwdl
-                Nsl = Nscl + Nsdl
-
-                pwc = 0; pwd = 0; psc = 0; psd = 0; pwl = 0; psl = 0
-                if Nw > 0:
-                    pwc = Nwc / Nw
-                    pwd = 1 - pwc
-                    pwl = Nwl / Nw
-                if Ns > 0:
-                    psc = Nsc / Ns
-                    psd = 1 - psc
-                    psl = Nsl / Ns
-
-                strengths = np.linspace(0.1, 0.9, N)
-                sPs = gaussian(strengths, 0.5, 0.5)
-                sPs = sPs / sPs.sum()
-                sPw = gaussian(strengths, 0, 0.5)
-                sPw = sPw / sPw.sum()
-                strongS = (sPs * strengths).sum()
-                weakS = (sPw * strengths).sum()
-
-                follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
-                follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
-
-                coop_w = 0
-                coop_s = 0
-
-                cl = (
-                    (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
-                    (N - Nsl - Nwl) * ( # non leaders
-                        pW * ( # weak
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
-                                (pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
-                                (pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
-                            )
-                        ) +
-                        pS * ( #strong
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
-                                (pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
-                                (pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
-                            )                            
-                        )
-                    )
-                )
-
-                cl = cl / N
-
-                res[idps] += cl * data[idr, iddl, idps, strat]
+    res = np.zeros((betav.shape[0]))
+    for strat in range(4):
+        for idb, beta in enumerate(betav):
             
+            stratW = strat%2
+            stratS = strat//2
 
-        ax.set_xticks(np.linspace(0, pSv.shape[0]-1, nticksX))
-        ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=12)
-        ax.set_yticks(np.linspace(0, 1, 3))
-        ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
-        ax.set_ylim(0.0, 1.0)
-        ax.plot(res, label='$\Delta_f=\Delta_f=%d$'%deltaF, color=cmap((iddl+1)/(len(deltaLv)+1)))
+            # set N levels of strength drawn from a prob. dist.
+            x = np.linspace(-2, 2, N)
+            strengths = fermi(x, beta)       
 
-        if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
-        if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
-        ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
+            s_diff = [[strengths[i] - strengths[j] for j in range(N)] for i in range(N)]
+            p_leader = strengths / sum(strengths)
 
-legend_elements = [Line2D([], [], marker='s', color='gold', label='No Leader',
-                           markerfacecolor='gold', markersize=10, linestyle='None')]
-legend_elements += [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
-legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+1)), label='%d'%deltaLv[idx],
-                          markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
-plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
-          fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig.png', bbox_inches='tight', dpi=300)
+            actions = [strengths[s] * stratS + (1 - strengths[s]) * stratW for s in range(N)]
+
+            b = np.zeros(N)
+
+            for leader in range(N):
+                leader_action = actions[leader]
+                other_actions = np.array([actions[p] for p in range(N) if p != leader])
+                diff = np.array([s_diff[leader][p] for p in range(N) if p != leader])
+                follow_prob = 1 / (1 + np.exp(-diff))
+                not_following = sum((1 - follow_prob) * (other_actions * eps1 + (1 - other_actions) * eps))
+                following = sum(follow_prob * (leader_action * (eps1**2 + eps**2) + (1 - leader_action) * (2 * eps1 * eps)))
+                b[leader] = (leader_action * eps1 + (1 - leader_action) * eps +
+                                not_following + following)
+                
+            cl = sum(b * p_leader)
+            cl = cl / N
+
+            res[idb] += cl * data[idr, idb, strat]
+        
+
+    ax.set_xticks(np.linspace(0, betav.shape[0]-1, nticksX))
+    ax.set_xticklabels(np.linspace(betav[0],betav[-1],nticksX), fontsize=12)
+    ax.set_yticks(np.linspace(0, 1, 3))
+    ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
+    ax.set_ylim(0.0, 1.0)
+    #ax.plot(res, label='$\mu=%d$'%mu, color=cmap((idm+1)/(len(muv)+1)))
+    ax.plot(res)
+
+    if i==nr-1: ax.set_xlabel(r'$\sigma$', fontsize=fntsize)
+    if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
+    ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
+
+# legend_elements = [Line2D([], [], marker='None', label='Leader: $\mu$', linestyle='None')]
+# legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(muv)+1)), label='%d'%muv[idx],
+#                           markerfacecolor=cmap((idx)/(len(muv)+1)), markersize=10, linestyle='None') for idx in range(len(muv))]
+# plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
+#           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
+plt.savefig('multileader_fig_fermi.png', bbox_inches='tight', dpi=300)
 
 plt.show()
