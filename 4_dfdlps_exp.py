@@ -8,7 +8,7 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltav):
     if np.isscalar(HZ):
         H=calcH(N-1,HZ-1)
 
-    MAT = np.zeros((len(deltav), len(pSv), len(rv), 4))
+    MAT = np.zeros((len(deltav), len(pSv), len(rv), 16))
 
     for idr, r in enumerate(rv):
         print(r)
@@ -27,7 +27,7 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltav):
                     MAT[iddl, idps, idr, best_s] = SD[best_s]
     return MAT
 
-def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
+def plotCOOPheat(MAT,deltaFv,pSv,rv,label,strategies):
 # Input: MAT (matrix from "coop_pF_r" function), pFv, rv ,Mv (vectors with values of pF, r, and M), label (name for the output file)
 # Output: heatmap plot of the fraction of cooperators as a function of pF and r, for different M
     import matplotlib.pyplot as plt
@@ -39,6 +39,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(6,17))
     f.subplots_adjust(hspace=0.4, wspace=0.2)
     k=-1
+    MAT = MAT[:,:,:,strategies]
     for idx in range(len(rv)):
         i = idx // nc
         j = idx % nc
@@ -163,16 +164,18 @@ if __name__ == "__main__":
 
     deltaLv=np.linspace(0,8,num=50)
     pSv=np.linspace(0.,1.,num=50)
-    rv=[5,6,7]
     rv=np.linspace(1,10,num=10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
     labfilenpy='results/multileader/ps/multi_leader_M0_f0_dfdlrps'
-    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
-    np.save(labfilenpy,MAT)             # save matrix for heatmap
-    print('data saved to file!')
-    
+    # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
+    # np.save(labfilenpy,MAT)             # save matrix for heatmap
+    # print('data saved to file!')
+
+    #0 10 11 15 ([0,0,0,0], [0,1,0,1], [1,1,0,1], [1,1,1,1])
+    # strategies = list(range(0, 4))
+    strategies = [0, 10, 11, 15]
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
-    plotCOOPheat(MAT,deltaLv,pSv,rv,labfilenpy)      # plot heatmap
-    #plotsingleheat(MAT,fv,rv,labfilenpy)
+    plotCOOPheat(MAT,deltaLv,pSv,rv,labfilenpy,strategies)      # plot heatmap
+    # plotsingleheat(MAT,fv,rv,labfilenpy)
 #####################################################

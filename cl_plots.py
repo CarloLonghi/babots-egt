@@ -40,7 +40,7 @@ for idr, r in enumerate(rv):
         pleadS = 1/(1+np.exp(-deltaL))
         pleadW=1-pleadS
         res = np.zeros((pSv.shape[0]))
-        for strat in range(4):
+        for strat in range(16):
             for idps, pS in enumerate(pSv):
                 pF = np.zeros((2,2))
 
@@ -49,22 +49,19 @@ for idr, r in enumerate(rv):
                 pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
                 pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
                 
-                stratW = strat%2
-                stratS = strat//2
+                s = [i%8%4%2//1, i%8%4//2, i%8//4, i//8]
 
                 pW = 1 - pS
                 Nw = N * pW
                 Ns = N * pS
 
-                Nwc = pW * (N * stratW)
-                Nwd = (N * pW) - Nwc
-                Nsc = pS * (N * stratS)
-                Nsd = (N * pS) - Nsc
+                Nwc = pW * N * (pleadW * s[0] + (1 - pleadW) * s[2])
+                Nsc = pS * N * (pleadS * s[1] + (1 - pleadS) * s[3])
 
-                Nwcl = Nwc * pleadW
-                Nscl = Nsc * pleadS
-                Nwdl = Nwd * pleadW
-                Nsdl = Nsd * pleadS
+                Nwcl = N * pW * pleadW * s[0]
+                Nscl = N * pS * pleadS * s[1]
+                Nwdl = N * pW * pleadW * (1 - s[0])
+                Nsdl = N * pS * pleadS * (1 - s[1])
                 Nwl = Nwcl + Nwdl
                 Nsl = Nscl + Nsdl
 
@@ -137,8 +134,8 @@ for idr, r in enumerate(rv):
 legend_elements = [Line2D([], [], marker='s', color='gold', label='No Leader',
                            markerfacecolor='gold', markersize=10, linestyle='None')]
 legend_elements += [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
-legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+1)), label='%d'%deltaLv[idx],
-                          markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
+legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv))), label='%d'%deltaLv[idx],
+                          markerfacecolor=cmap((idx)/(len(deltaLv))), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
 plt.savefig('multileader_fig.png', bbox_inches='tight', dpi=300)

@@ -9,22 +9,24 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,deltaLv,f,betaF):
     if np.isscalar(HZ):
         H=calcH(N-1,HZ-1)
 
-    MAT = np.zeros((len(rv), len(deltaLv), len(pSv), 4))
+    MAT = np.zeros((len(rv), len(deltaLv), len(pSv), 16))
 
-    for idr, r, in enumerate(rv):
-        print(r)
-        for iddl, deltaL in enumerate(deltaLv):
-            deltaF=deltaL
-            for idps, pS in enumerate(pSv):
-                pF=np.zeros((2,2))
-                pF[0,0] = 1/(1+np.exp(-betaF*(f)))
-                pF[1,1] = 1/(1+np.exp(-betaF*(f)))
-                pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
-                pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
+    for iddl, deltaL in enumerate(deltaLv):
+        deltaF=deltaL
+        for idps, pS in enumerate(pSv):
+            pF=np.zeros((2,2))
+            pF[0,0] = 1/(1+np.exp(-betaF*(f)))
+            pF[1,1] = 1/(1+np.exp(-betaF*(f)))
+            pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
+            pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
 
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
-                #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
-                SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
+            WCD=calcWCD(N,eps,pF,deltaL,pS,M)
+            #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
+            Wpop = evo.calcWpop(WCD,H,info=False)
+            for idr, r, in enumerate(rv):
+                #SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
+                fixM,_=evo.calcFIXM(Wpop,[r, -1],beta,check=False)
+                SD=evo.calcSD(fixM)
                 MAT[idr, iddl, idps] = SD[:,0]
     return MAT
 
@@ -106,7 +108,8 @@ if __name__ == "__main__":
 
     deltaLv=[0, 1, 2, 4, 8]
     pSv=np.linspace(0,1.,num=50)
-    rv=np.linspace(1,10,num=10)
+    #rv=np.linspace(1,10,num=10)
+    rv=[4, 10]
     
     labfilenpy='results/multileader/cl/res_4strats_M0_f0'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,deltaLv,f,betaF)

@@ -46,7 +46,7 @@ def fl(sl,eps):
 def calcWCD(N,eps,pF,deltaL,pS,M):
 # Input: N group size, eps error when trying to perform an action, r multiplicative constant for the PGG (assuming c=1), pF probability of following leader, M number of individuals that need to cooperate in order to get any benefit
 # Output: WCD[i,k,ip] payoffs (i=0 defector, i=1 cooperator; k number of cooperators in the group; ip coef associated to the parameter payoffs r (ip=0) and c (ip=1))
-    WCD=np.zeros((4,4,N+1,2))
+    WCD=np.zeros((16,16,N+1,2))
     eps1=1.-eps
 
     pW = 1. - pS
@@ -55,23 +55,31 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
     Nw = N*pW
     Ns = N*pS
 
-    for i in range(4):
-        s1=[i%2,i//2] # s:[w,s], 0:[0,0], 1:[1,0], 2:[0,1], 3:[1,1]
-        for j in range(4):
-            s2=[j%2,j//2]
+    for i in range(16):
+        s1=[i%8%4%2//1, i%8%4//2, i%8//4, i//8] # s:[LW, LS, nLW, nLS]
+        for j in range(16):
+            s2=[j%8%4%2//1, j%8%4//2, j%8//4, j//8]
             for k in range(0,N+1): # k: number of players following strategy s1
 
-                Nwc = pW*(k*s1[0]+(N-k)*s2[0])
-                Nsc = pS*(k*s1[1]+(N-k)*s2[1])
-                Nwd = N*pW-Nwc
-                Nsd = N*pS-Nsc
+                # Nwc = pW * (k * (pleadW * s1[0] + (1 - pleadW) * s1[2]) + 
+                #             (N - k) * (pleadW * s2[0] + (1 - pleadW) * s2[2]))
+                # Nsc = pS * (k * (pleadS * s1[1] + (1 - pleadS) * s1[3]) +
+                #             (N - k) * (pleadS * s2[1] + (1 - pleadS) * s2[3]))
 
-                Nwcl = Nwc * pleadW
-                Nscl = Nsc * pleadS
-                Nwdl = Nwd * pleadW
-                Nsdl = Nsd * pleadS
+                Nwcl = pW * (pleadW * (k * s1[0] + (N - k) * s2[0]))
+                Nscl = pS * (pleadS * (k * s1[1] + (N - k) * s2[1]))
+                Nwdl = pW * (pleadW * (k * (1 - s1[0]) + (N - k)* (1 - s2[0])))
+                Nsdl = pS * (pleadS * (k * (1 - s1[1]) + (N - k) * (1 - s2[1])))
+
+                Nwcnl = pW * ((1 - pleadW) * (k * s1[0] + (N - k) * s2[0]))
+                Nscnl = pS * ((1 - pleadS) * (k * s1[1] + (N - k) * s2[1]))
+                Nwdnl = pW * ((1 - pleadW) * (k * (1 - s1[0]) + (N - k)* (1 - s2[0])))
+                Nsdnl = pS * ((1 - pleadS) * (k * (1 - s1[1]) + (N - k) * (1 - s2[1])))   
+
                 Nwl = Nwcl + Nwdl
                 Nsl = Nscl + Nsdl
+                Nwc = Nwcl + Nwcnl
+                Nsc = Nscl + Nscnl
 
                 pwc = 0; pwd = 0; psc = 0; psd = 0; pwl = 0; psl = 0
                 if Nw > 0:
@@ -117,11 +125,11 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         pwl * aeps(s1[0], eps) + # focus playes is a leader
                         (1 - pwl) * ( # is not a leader
                             follow_w * ( # choose weak leader
-                                (1 - pF[0, 0]) * aeps(s1[0], eps) +
+                                (1 - pF[0, 0]) * aeps(s1[2], eps) +
                                 pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))
                             ) + 
                             follow_s * (
-                                (1 - pF[0, 1]) * aeps(s1[0], eps) +
+                                (1 - pF[0, 1]) * aeps(s1[2], eps) +
                                 pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps))                                
                             )
                         )
@@ -130,11 +138,11 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         psl * aeps(s1[1], eps) + # focus playes is a leader
                         (1 - psl) * ( # is not a leader
                             follow_w * ( # choose weak leader
-                                (1 - pF[1, 0]) * aeps(s1[1], eps) +
+                                (1 - pF[1, 0]) * aeps(s1[3], eps) +
                                 pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))
                             ) + 
                             follow_s * (
-                                (1 - pF[1, 1]) * aeps(s1[1], eps) +
+                                (1 - pF[1, 1]) * aeps(s1[3], eps) +
                                 pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps))                                
                             )
                         )
