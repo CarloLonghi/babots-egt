@@ -21,6 +21,8 @@ N = 9
 eps = 0.01
 eps1 = 1 - eps
 rv=np.linspace(1,10,num=10)
+deltaLv=[0, 1, 2, 4, 8]
+pSv=np.linspace(0,1,num=50)
 
 
 fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,12))
@@ -35,58 +37,75 @@ for idr, r in enumerate(rv):
     i = idr // nc
     j = idr % nc
     ax=axs[i,j]
-
-    res = np.zeros((betav.shape[0]))
-    for strat in range(4):
-        for idb, beta in enumerate(betav):
-            
-            stratW = strat%2
-            stratS = strat//2
-
-            # set N levels of strength drawn from a prob. dist.
-            x = np.linspace(-2, 2, N)
-            strengths = fermi(x, beta)       
-
-            s_diff = [[strengths[i] - strengths[j] for j in range(N)] for i in range(N)]
-            p_leader = strengths / sum(strengths)
-
-            actions = [strengths[s] * stratS + (1 - strengths[s]) * stratW for s in range(N)]
-
-            b = np.zeros(N)
-
-            for leader in range(N):
-                leader_action = actions[leader]
-                other_actions = np.array([actions[p] for p in range(N) if p != leader])
-                diff = np.array([s_diff[leader][p] for p in range(N) if p != leader])
-                follow_prob = 1 / (1 + np.exp(-diff))
-                not_following = sum((1 - follow_prob) * (other_actions * eps1 + (1 - other_actions) * eps))
-                following = sum(follow_prob * (leader_action * (eps1**2 + eps**2) + (1 - leader_action) * (2 * eps1 * eps)))
-                b[leader] = (leader_action * eps1 + (1 - leader_action) * eps +
-                                not_following + following)
+    for iddl, deltaL in enumerate(deltaLv):
+        res = np.zeros((pSv.shape[0]))
+        for strat in range(4):
+            for idps, pS in enumerate(pSv):
                 
-            cl = sum(b * p_leader)
-            cl = cl / N
+                stratW = strat%2
+                stratS = strat//2
 
-            res[idb] += cl * data[idr, idb, strat]
-        
+                # set N levels of strength drawn from a prob. dist.
+                numS = int(np.round(N * pS))
+                numW = int(np.round(N * (1 - pS)))
+                s = 1 / (1 + np.exp(-deltaL))
+                w = 1 / (1 + np.exp(deltaL))
+                strengths = [s,] * numS + [w,] * numW       
 
-    ax.set_xticks(np.linspace(0, betav.shape[0]-1, nticksX))
-    ax.set_xticklabels(np.linspace(betav[0],betav[-1],nticksX), fontsize=12)
-    ax.set_yticks(np.linspace(0, 1, 3))
-    ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
-    ax.set_ylim(0.0, 1.0)
-    #ax.plot(res, label='$\mu=%d$'%mu, color=cmap((idm+1)/(len(muv)+1)))
-    ax.plot(res)
+                s_diff = np.array([[strengths[i] - strengths[j] for j in range(N)] for i in range(N)])
+                p_leader = strengths / sum(strengths)
 
-    if i==nr-1: ax.set_xlabel(r'$\sigma$', fontsize=fntsize)
-    if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
-    ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
+                follow_prob = np.zeros((N, N))
+                for i in range(numS):
+                    for j in range(numS):
+                        follow_prob[i, j] = 1/(1+np.exp(0))
+                    for j in range(numS, numS + numW):
+                        follow_prob[i, j] = 1/(1+np.exp(-deltaL))
+                for i in range(numS, numS + numW):
+                    for j in range(numS):
+                        follow_prob[i, j] = 1/(1+np.exp(deltaL))
+                    for j in range(numS, numS + numW):
+                        follow_prob[i, j] = 1/(1+np.exp(0))
 
-# legend_elements = [Line2D([], [], marker='None', label='Leader: $\mu$', linestyle='None')]
-# legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(muv)+1)), label='%d'%muv[idx],
-#                           markerfacecolor=cmap((idx)/(len(muv)+1)), markersize=10, linestyle='None') for idx in range(len(muv))]
-# plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
-#           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig_fermi.png', bbox_inches='tight', dpi=300)
+                # actions = np.array([strengths[s] * stratS + (1 - strengths[s]) * stratW for s in range(N)])
+                actions = np.array([stratS for _ in range(numS)] + [stratW for _ in range(numW)])
+
+                b = np.zeros(N)
+
+                leader_actions = np.expand_dims(actions, axis=1)
+                other_actions = np.array([[actions[p] for p in range(N) if p != leader] for leader in range(N)])
+                diff = np.array([[s_diff[leader][p] for p in range(N) if p != leader] for leader in range(N)])
+                # follow_prob = 1 / (1 + np.exp(-diff))
+                fp = np.array([[follow_prob[i, j] for j in range(N) if i!= j] for i in range(N)])
+                not_following = (1 - fp) * (other_actions * eps1 + (1 - other_actions) * eps)
+                not_following = np.sum(not_following, axis=1)
+                following = fp * (leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
+                following = np.sum(following, axis=1)
+                b = actions * eps1 + (1 - actions) * eps + not_following + following
+                    
+                cl = sum(b * p_leader)
+                cl = cl / N
+
+                res[idps] += cl * data[idr, iddl, idps, strat]
+            
+
+        ax.set_xticks(np.linspace(0, pSv.shape[0]-1, nticksX))
+        ax.set_xticklabels(np.linspace(pSv[0],betav[-1],nticksX), fontsize=12)
+        ax.set_yticks(np.linspace(0, 1, 3))
+        ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
+        ax.set_ylim(0.0, 1.0)
+        ax.plot(res, label='$\delta_L=%d$'%deltaL, color=cmap((iddl)/(len(deltaLv))))
+        #ax.plot(res)
+
+        if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
+        if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
+        ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
+
+legend_elements = [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
+legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv)+1)), label='%d'%deltaLv[idx],
+                          markerfacecolor=cmap((idx)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
+plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
+          fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
+plt.savefig('multileader_fig_baseline.png', bbox_inches='tight', dpi=300)
 
 plt.show()

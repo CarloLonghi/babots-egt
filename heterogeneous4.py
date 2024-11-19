@@ -45,7 +45,7 @@ def fl(sl,eps):
     else:
         return eps1**2+eps**2
 
-def calcWCD(N,eps,beta,M):
+def calcWCD(N,eps,beta,pS,deltaL,M):
 # Input: N group size, eps error when trying to perform an action, r multiplicative constant for the PGG (assuming c=1), pF probability of following leader, M number of individuals that need to cooperate in order to get any benefit
 # Output: WCD[i,k,ip] payoffs (i=0 defector, i=1 cooperator; k number of cooperators in the group; ip coef associated to the parameter payoffs r (ip=0) and c (ip=1))
     WCD=np.zeros((4,4,N+1,2))
@@ -73,10 +73,30 @@ def calcWCD(N,eps,beta,M):
     # for step in y:
     #     strengths = np.append(strengths, strengths[-1] + step)
 
-    x = np.linspace(-2, 2, N)
-    strengths = fermi(x, beta)
+    # x = np.linspace(-2, 2, N)
+    # strengths = fermi(x, beta)
+
+    numS = int(np.round(N * pS))
+    numW = int(np.round(N * (1 - pS)))
+    s = 1 / (1 + np.exp(-deltaL))
+    w = 1 / (1 + np.exp(deltaL))
+    strengths = [s,] * numS + [w,] * numW
 
     s_diff = np.array([[strengths[i] - strengths[j] for j in range(N)] for i in range(N)])
+    s_diff = np.array([[1/(1+np.exp(0)) for j in range(numS)] + [1/(1+np.exp(-deltaL)) for j in range(numS, numS+numW)] for i in range(numS)] +
+                      [[1/(1+np.exp(deltaL)) for j in range(numS)] + [1/(1+np.exp(0)) for j in range(numS, numS + numW)] for i in range(numS, numS + numW)])
+    follow_prob = np.zeros((N, N))
+    for i in range(numS):
+        for j in range(numS):
+            follow_prob[i, j] = 1/(1+np.exp(0))
+        for j in range(numS, numS + numW):
+            follow_prob[i, j] = 1/(1+np.exp(-deltaL))
+    for i in range(numS, numS + numW):
+        for j in range(numS):
+            follow_prob[i, j] = 1/(1+np.exp(deltaL))
+        for j in range(numS, numS + numW):
+            follow_prob[i, j] = 1/(1+np.exp(0))    
+
     p_leader = strengths / sum(strengths)
 
     for i in range(4):
@@ -91,9 +111,11 @@ def calcWCD(N,eps,beta,M):
                 for s1_idx in combs:
 
                     strategies = [1 if s in s1_idx else 0 for s in range(N)]
-                    actions = np.array([strengths[s] * s1[1] + (1 - strengths[s]) * s1[0] if strategies[s] == 1
-                               else strengths[s] * s2[1] + (1 - strengths[s]) * s2[0]
-                               for s in range(N)])
+                    # actions = np.array([strengths[s] * s1[1] + (1 - strengths[s]) * s1[0] if strategies[s] == 1
+                    #            else strengths[s] * s2[1] + (1 - strengths[s]) * s2[0]
+                    #            for s in range(N)])
+                    actions = np.array([s1[1] if strategies[s] == 1 else s2[1] for s in range(numS)] + 
+                                       [s1[0] if strategies[s] == 1 else s2[0] for s in range(numS, numS + numW)])
                     
                     b = np.zeros(N)
                     c = np.zeros(N)
@@ -101,10 +123,11 @@ def calcWCD(N,eps,beta,M):
                     leader_actions = np.expand_dims(actions, axis=1)
                     other_actions = np.array([[actions[p] for p in range(N) if p != leader] for leader in range(N)])
                     diff = np.array([[s_diff[leader][p] for p in range(N) if p != leader] for leader in range(N)])
-                    follow_prob = 1 / (1 + np.exp(-diff))
-                    not_following = (1 - follow_prob) * (other_actions * eps1 + (1 - other_actions) * eps)
+                    # follow_prob = 1 / (1 + np.exp(-diff))
+                    fp = np.array([[follow_prob[i, j] for j in range(N) if i!= j] for i in range(N)])
+                    not_following = (1 - fp) * (other_actions * eps1 + (1 - other_actions) * eps)
                     not_following = np.sum(not_following, axis=1)
-                    following = follow_prob * (leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
+                    following = fp * (leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
                     following = np.sum(following, axis=1)
                     b = actions * eps1 + (1 - actions) * eps + not_following + following
 
@@ -130,9 +153,10 @@ def calcWCD(N,eps,beta,M):
                         focus_players = [p for p in s1_idx if p != leader]
                         focus_actions = actions[focus_players]
                         diff = np.array([s_diff[leader][p] for p in focus_players])
-                        follow_prob = 1 / (1 + np.exp(-diff))
-                        not_following = sum((1 - follow_prob) * (focus_actions * eps1 + (1 - focus_actions) * eps))
-                        following = sum(follow_prob * (leader_action * (eps1**2 + eps**2) + (1 - leader_action) * (2 * eps1 * eps)))
+                        # follow_prob = 1 / (1 + np.exp(-diff))
+                        fp = np.array([follow_prob[leader, j] for j in focus_players])
+                        not_following = sum((1 - fp) * (focus_actions * eps1 + (1 - focus_actions) * eps))
+                        following = sum(fp * (leader_action * (eps1**2 + eps**2) + (1 - leader_action) * (2 * eps1 * eps)))
                         p_cost += not_following + following
 
                         if k > 0:

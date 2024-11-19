@@ -3,21 +3,25 @@ import evoEGT as evo
 from heterogeneous4 import calcH, calcWCD
 from noleadermodel import calcWCD as calcWCDnoleader
 
-def coop_pF_r(rv,M,N,HZ,beta,eps,betav):
+def coop_pF_r(rv,M,N,HZ,beta,eps,betav,pSv,deltaLv):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
 # Output: matrix with the fraction of cooperators as a function of pF and r
     if np.isscalar(HZ):
         H=calcH(N-1,HZ-1)
 
-    MAT = np.zeros((len(rv), len(betav), 4))
+    MAT = np.zeros((len(rv), len(deltaLv), len(pSv), 4))
 
-    for idr, r, in enumerate(rv):
-        for idb, beta in enumerate(betav):
-            print(r, beta)
-            WCD=calcWCD(N,eps,beta,M)
+    for idps, pS in enumerate(pSv):
+        for iddl, deltaL in enumerate(deltaLv):
+            WCD=calcWCD(N,eps,beta,pS,deltaL,M)
             #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
-            SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
-            MAT[idr, idb] = SD[:,0]
+            Wpop=evo.calcWpop(WCD,HZ,info=False)
+            for idr, r, in enumerate(rv):
+                print(r, pS, deltaL)
+                fixM,_=evo.calcFIXM(Wpop,[r,-1],beta,check=False)
+                SD=evo.calcSD(fixM)
+                #SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
+                MAT[idr, iddl, idps] = SD[:,0]
     return MAT
 
 def plotCOOPheat(MAT,f1v,f2v,sv,label):
@@ -99,9 +103,11 @@ if __name__ == "__main__":
     #muv=[0, 0.25, 0.5, 0.75, 1.]
     betav=np.linspace(-5,5.,num=50)
     rv=np.linspace(1,10,num=10)
+    pSv=np.linspace(0,1,num=50)
+    deltaLv=[0, 1, 2, 4, 8]
     
     labfilenpy='results/multileader/cl/res_4strats_M0_f0_sdist_update'
-    MAT=coop_pF_r(rv,M,N,Z,beta,eps,betav)
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps,betav,pSv,deltaLv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')
     
