@@ -50,7 +50,7 @@ for idr, r in enumerate(rv):
                 numW = int(np.round(N * (1 - pS)))
                 s = 1 / (1 + np.exp(-deltaL))
                 w = 1 / (1 + np.exp(deltaL))
-                strengths = [s,] * numS + [w,] * numW       
+                strengths = np.array([s,] * numS + [w,] * numW)
 
                 s_diff = np.array([[strengths[i] - strengths[j] for j in range(N)] for i in range(N)])
                 p_leader = strengths / sum(strengths)
@@ -72,25 +72,29 @@ for idr, r in enumerate(rv):
 
                 b = np.zeros(N)
 
-                leader_actions = np.expand_dims(actions, axis=1)
-                other_actions = np.array([[actions[p] for p in range(N) if p != leader] for leader in range(N)])
+                leader_choice = (strengths * strengths) / sum(strengths * strengths)
+                leader_choice = np.array([[leader_choice[i] for i in range(N) if i != j] for j in range(N)])
+                leader_actions = np.array([[actions[j] for j in range(N) if j != i] for i in range(N)])
                 diff = np.array([[s_diff[leader][p] for p in range(N) if p != leader] for leader in range(N)])
                 # follow_prob = 1 / (1 + np.exp(-diff))
-                fp = np.array([[follow_prob[i, j] for j in range(N) if i!= j] for i in range(N)])
-                not_following = (1 - fp) * (other_actions * eps1 + (1 - other_actions) * eps)
-                not_following = np.sum(not_following, axis=1)
-                following = fp * (leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
+                # fp = np.array([[follow_prob[i, j] for j in range(N) if i != j] for i in range(N)])
+                fp = np.array([[follow_prob[i, j] for i in range(N) if i != j] for j in range(N)])
+                following = np.expand_dims((1 - strengths), 1) * leader_choice * fp * (
+                    leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
                 following = np.sum(following, axis=1)
-                b = actions * eps1 + (1 - actions) * eps + not_following + following
+                not_following = np.expand_dims((1 - strengths), 1) * leader_choice * (1 - fp) * (
+                    np.expand_dims(actions, 1) * eps1 + np.expand_dims((1 - actions), 1) * eps)
+                not_following = np.sum(not_following, axis=1)
+                leading = strengths * (actions * eps1 + (1 - actions) * eps) 
+                b = np.sum(leading + not_following + following)
                     
-                cl = sum(b * p_leader)
-                cl = cl / N
+                cl = b / N
 
                 res[idps] += cl * data[idr, iddl, idps, strat]
             
 
         ax.set_xticks(np.linspace(0, pSv.shape[0]-1, nticksX))
-        ax.set_xticklabels(np.linspace(pSv[0],betav[-1],nticksX), fontsize=12)
+        ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=12)
         ax.set_yticks(np.linspace(0, 1, 3))
         ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
         ax.set_ylim(0.0, 1.0)
