@@ -80,7 +80,7 @@ def calcWCD(N,eps,beta,pS,deltaL,M):
     numW = int(np.round(N * (1 - pS)))
     s = 1 / (1 + np.exp(-deltaL))
     w = 1 / (1 + np.exp(deltaL))
-    strengths = [s,] * numS + [w,] * numW
+    strengths = np.array([s,] * numS + [w,] * numW)
 
     s_diff = np.array([[strengths[i] - strengths[j] for j in range(N)] for i in range(N)])
     s_diff = np.array([[1/(1+np.exp(0)) for j in range(numS)] + [1/(1+np.exp(-deltaL)) for j in range(numS, numS+numW)] for i in range(numS)] +
@@ -143,24 +143,37 @@ def calcWCD(N,eps,beta,pS,deltaL,M):
                     #     following = np.sum(following, axis=1)
                     #     p_cost += not_following + following
                     #     c += p_cost / k
-                    
 
-                    for leader in range(N):
-                        leader_action = actions[leader]
-                        p_cost = 0
-                        if leader in s1_idx:
-                            p_cost += leader_action * eps1 + (1 - leader_action) * eps
-                        focus_players = [p for p in s1_idx if p != leader]
-                        focus_actions = actions[focus_players]
-                        diff = np.array([s_diff[leader][p] for p in focus_players])
-                        # follow_prob = 1 / (1 + np.exp(-diff))
-                        fp = np.array([follow_prob[leader, j] for j in focus_players])
-                        not_following = sum((1 - fp) * (focus_actions * eps1 + (1 - focus_actions) * eps))
-                        following = sum(fp * (leader_action * (eps1**2 + eps**2) + (1 - leader_action) * (2 * eps1 * eps)))
-                        p_cost += not_following + following
+                    leader_actions = np.expand_dims(actions, 1)
+                    leading = strategies * (actions * eps1 + (1 - actions) * eps)
+                    focus_actions = np.array([[actions[p] * strategies[p] for p in range(N) if p != leader] for leader in range(N)])
+                    diff = np.array([[s_diff[leader][p] * strategies[p] for p in range(N) if p != leader] for leader in range(N)])
+                    # follow_prob = 1 / (1 + np.exp(-diff))
+                    fp = np.array([[follow_prob[leader, j] * strategies[j] for j in range(N) if j != leader] for leader in range(N)])
+                    not_following = (1 - fp) * (focus_actions * eps1 + (1 - focus_actions) * eps)
+                    not_following = np.sum(not_following, axis=1)
+                    following = fp * (leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
+                    following = np.sum(following, axis=1)
+                    c = leading + following + not_following
+                    if k > 0:
+                        c /= k
 
-                        if k > 0:
-                            c[leader] = p_cost / k
+                    # for leader in range(N):
+                    #     leader_action = actions[leader]
+                    #     p_cost = 0
+                    #     if leader in s1_idx:
+                    #         p_cost += leader_action * eps1 + (1 - leader_action) * eps
+                    #     focus_players = [p for p in s1_idx if p != leader]
+                    #     focus_actions = actions[focus_players]
+                    #     diff = np.array([s_diff[leader][p] for p in focus_players])
+                    #     # follow_prob = 1 / (1 + np.exp(-diff))
+                    #     fp = np.array([follow_prob[leader, j] for j in focus_players])
+                    #     not_following = sum((1 - fp) * (focus_actions * eps1 + (1 - focus_actions) * eps))
+                    #     following = sum(fp * (leader_action * (eps1**2 + eps**2) + (1 - leader_action) * (2 * eps1 * eps)))
+                    #     p_cost += not_following + following
+
+                        # if k > 0:
+                        #     c[leader] = p_cost / k
                         
                     benefit += sum(b * p_leader)
                     cost += sum(c * p_leader)
