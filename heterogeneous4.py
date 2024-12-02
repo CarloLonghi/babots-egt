@@ -71,24 +71,28 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                 Nwdl = pW * (pleadW * (k * (1 - s1[0]) + (N - k)* (1 - s2[0])))
                 Nsdl = pS * (pleadS * (k * (1 - s1[1]) + (N - k) * (1 - s2[1])))
 
-                Nwcnl = pW * ((1 - pleadW) * (k * s1[0] + (N - k) * s2[0]))
-                Nscnl = pS * ((1 - pleadS) * (k * s1[1] + (N - k) * s2[1]))
-                Nwdnl = pW * ((1 - pleadW) * (k * (1 - s1[0]) + (N - k)* (1 - s2[0])))
-                Nsdnl = pS * ((1 - pleadS) * (k * (1 - s1[1]) + (N - k) * (1 - s2[1])))   
+                Nwcnl = pW * ((1 - pleadW) * (k * s1[2] + (N - k) * s2[2]))
+                Nscnl = pS * ((1 - pleadS) * (k * s1[3] + (N - k) * s2[3]))
+                Nwdnl = pW * ((1 - pleadW) * (k * (1 - s1[2]) + (N - k)* (1 - s2[2])))
+                Nsdnl = pS * ((1 - pleadS) * (k * (1 - s1[3]) + (N - k) * (1 - s2[3])))   
 
                 Nwl = Nwcl + Nwdl
                 Nsl = Nscl + Nsdl
                 Nwc = Nwcl + Nwcnl
                 Nsc = Nscl + Nscnl
 
-                pwc = 0; pwd = 0; psc = 0; psd = 0; pwl = 0; psl = 0
+                pwc = 0; pwd = 0; psc = 0; psd = 0; pwcl = 0; pwdl = 0; pscl = 0; psdl = 0; pwl = 0; psl = 0
                 if Nw > 0:
                     pwc = Nwc / Nw
                     pwd = 1 - pwc
+                    pwcl = Nwcl / Nwl
+                    pwdl = Nwdl / Nwl
                     pwl = Nwl / Nw
                 if Ns > 0:
                     psc = Nsc / Ns
                     psd = 1 - psc
+                    pscl = Nscl / Nsl
+                    psdl = Nsdl / Nsl
                     psl = Nsl / Ns
 
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
@@ -100,21 +104,21 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         pW * ( # weak
                             follow_w * ( # choose a weak leader
                                 (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
-                                (pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                                (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
                             ) + 
                             follow_s * ( # choose a strong leader
                                 (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
-                                (pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                                (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                             )
                         ) +
                         pS * ( #strong
                             follow_w * ( # choose a weak leader
                                 (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
-                                (pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                                (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
                             ) + 
                             follow_s * ( # choose a strong leader
                                 (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
-                                (pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                                (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                             )                            
                         )
                     )
@@ -126,11 +130,11 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         (1 - pwl) * ( # is not a leader
                             follow_w * ( # choose weak leader
                                 (1 - pF[0, 0]) * aeps(s1[2], eps) +
-                                pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))
+                                pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
                             ) + 
                             follow_s * (
                                 (1 - pF[0, 1]) * aeps(s1[2], eps) +
-                                pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps))                                
+                                pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
                             )
                         )
                     ) +
@@ -139,11 +143,11 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         (1 - psl) * ( # is not a leader
                             follow_w * ( # choose weak leader
                                 (1 - pF[1, 0]) * aeps(s1[3], eps) +
-                                pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))
+                                pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
                             ) + 
                             follow_s * (
                                 (1 - pF[1, 1]) * aeps(s1[3], eps) +
-                                pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps))                                
+                                pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
                             )
                         )
                     )

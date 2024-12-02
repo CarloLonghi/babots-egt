@@ -108,8 +108,7 @@ if __name__ == "__main__":
 
     deltaLv=[0, 1, 2, 4, 8]
     pSv=np.linspace(0,1.,num=50)
-    #rv=np.linspace(1,10,num=10)
-    rv=[4, 10]
+    rv=np.linspace(1,10,num=10)
     
     labfilenpy='results/multileader/cl/res_4strats_M0_f0'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,deltaLv,f,betaF)

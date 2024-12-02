@@ -49,7 +49,7 @@ for idr, r in enumerate(rv):
                 pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
                 pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
                 
-                s = [i%8%4%2//1, i%8%4//2, i%8//4, i//8]
+                s = [strat%8%4%2//1, strat%8%4//2, strat%8//4, strat//8]
 
                 pW = 1 - pS
                 Nw = N * pW
@@ -65,29 +65,20 @@ for idr, r in enumerate(rv):
                 Nwl = Nwcl + Nwdl
                 Nsl = Nscl + Nsdl
 
-                pwc = 0; pwd = 0; psc = 0; psd = 0; pwl = 0; psl = 0
+                pwc = 0; pwd = 0; psc = 0; psd = 0; pwcl = 0; pwdl = 0; pscl = 0; psdl = 0
                 if Nw > 0:
                     pwc = Nwc / Nw
                     pwd = 1 - pwc
-                    pwl = Nwl / Nw
+                    pwcl = Nwcl / Nwl
+                    pwdl = Nwdl / Nwl
                 if Ns > 0:
                     psc = Nsc / Ns
                     psd = 1 - psc
-                    psl = Nsl / Ns
-
-                strengths = np.linspace(0.1, 0.9, N)
-                sPs = gaussian(strengths, 0.5, 0.5)
-                sPs = sPs / sPs.sum()
-                sPw = gaussian(strengths, 0, 0.5)
-                sPw = sPw / sPw.sum()
-                strongS = (sPs * strengths).sum()
-                weakS = (sPw * strengths).sum()
+                    pscl = Nscl / Nsl
+                    psdl = Nsdl / Nsl
 
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
-
-                coop_w = 0
-                coop_s = 0
 
                 cl = (
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
@@ -95,21 +86,21 @@ for idr, r in enumerate(rv):
                         pW * ( # weak
                             follow_w * ( # choose a weak leader
                                 (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
-                                (pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                                (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
                             ) + 
                             follow_s * ( # choose a strong leader
                                 (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
-                                (pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                                (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                             )
                         ) +
                         pS * ( #strong
                             follow_w * ( # choose a weak leader
                                 (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
-                                (pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                                (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
                             ) + 
                             follow_s * ( # choose a strong leader
                                 (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
-                                (pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                                (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                             )                            
                         )
                     )
@@ -138,6 +129,6 @@ legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv))),
                           markerfacecolor=cmap((idx)/(len(deltaLv))), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig.png', bbox_inches='tight', dpi=300)
+plt.savefig('multileader_fig_16strat.png', bbox_inches='tight', dpi=300)
 
 plt.show()

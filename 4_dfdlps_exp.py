@@ -168,13 +168,13 @@ if __name__ == "__main__":
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
     labfilenpy='results/multileader/ps/multi_leader_M0_f0_dfdlrps'
-    # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
-    # np.save(labfilenpy,MAT)             # save matrix for heatmap
-    # print('data saved to file!')
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
+    np.save(labfilenpy,MAT)             # save matrix for heatmap
+    print('data saved to file!')
 
     #0 10 11 15 ([0,0,0,0], [0,1,0,1], [1,1,0,1], [1,1,1,1])
     # strategies = list(range(0, 4))
-    strategies = [0, 10, 11, 15]
+    strategies = [0, 1, 2, 3]
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
     plotCOOPheat(MAT,deltaLv,pSv,rv,labfilenpy,strategies)      # plot heatmap
     # plotsingleheat(MAT,fv,rv,labfilenpy)
