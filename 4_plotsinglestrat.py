@@ -33,7 +33,7 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltaFv):
                 MAT[iddf, idps, idr, :] = SD[:,0]
     return MAT
 
-def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
+def plotCOOPheat(MAT,deltaFv,pSv,r,label):
 # Input: MAT (matrix from "coop_pF_r" function), pFv, rv ,Mv (vectors with values of pF, r, and M), label (name for the output file)
 # Output: heatmap plot of the fraction of cooperators as a function of pF and r, for different M
     import matplotlib.pyplot as plt
@@ -43,7 +43,6 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     nc=2
     f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,5))
     f.subplots_adjust(hspace=0.2, wspace=0.2)
-    r=0
     labels = ['ALLD', 'WCSD', 'WDSC', 'ALLC']
     for strat in range(4):
         i = strat // nc
@@ -64,37 +63,31 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
         ax.text(17.5,50,labels[strat], size=fntsize)
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
         if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
-
-        # insert markers for invasion graphs
-        points_x = [MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5]
-        points_y = [0.7, MAT.shape[0] // 8 - 0.5, MAT.shape[0] // 4 - 0.5]
-        ax.scatter(points_x, points_y, color='goldenrod', marker='o')
     
-    f.savefig('figures/single_strategies_r5.png',bbox_inches='tight',dpi=300)
+    f.savefig('multileader_single_strategies_r6.png',bbox_inches='tight',dpi=300)
     plt.show()
-    f.clf()     
     return
 
-def plotsingleheat(MAT,fv,rv,label):
-# Input: MAT (matrix from "coop_pF_r" function), pFv, rv ,Mv (vectors with values of pF, r, and M), label (name for the output file)
-# Output: heatmap plot of the fraction of cooperators as a function of pF and r, for different M
-    import matplotlib.pyplot as plt
-    fntsize=12
-    f,ax=plt.subplots()
-    h=ax.imshow(MAT,origin='lower', interpolation='none',aspect='auto')
-    nticksY=5
-    nticksX=3
-    ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
-    ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
-    ax.set_xticklabels(np.linspace(fv[0],fv[-1],nticksX))
-    ax.set_yticklabels(np.linspace(rv[0],rv[-1],nticksY))
-    ax.set_xlabel(r'$f$', fontsize=fntsize)
-    ax.set_ylabel(r'$r$', fontsize=fntsize)
-#cb=f.colorbar(h, fraction=0.1,format='%.2f')
-    #cb.set_label(label=r'$f_C$')
-    f.savefig('figures/single_strategies_r5.png',bbox_inches='tight',dpi=300)
-    f.clf()     
-    return
+# def plotsingleheat(MAT,fv,rv,label):
+# # Input: MAT (matrix from "coop_pF_r" function), pFv, rv ,Mv (vectors with values of pF, r, and M), label (name for the output file)
+# # Output: heatmap plot of the fraction of cooperators as a function of pF and r, for different M
+#     import matplotlib.pyplot as plt
+#     fntsize=12
+#     f,ax=plt.subplots()
+#     h=ax.imshow(MAT,origin='lower', interpolation='none',aspect='auto')
+#     nticksY=5
+#     nticksX=3
+#     ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
+#     ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
+#     ax.set_xticklabels(np.linspace(fv[0],fv[-1],nticksX))
+#     ax.set_yticklabels(np.linspace(rv[0],rv[-1],nticksY))
+#     ax.set_xlabel(r'$f$', fontsize=fntsize)
+#     ax.set_ylabel(r'$r$', fontsize=fntsize)
+# #cb=f.colorbar(h, fraction=0.1,format='%.2f')
+#     #cb.set_label(label=r'$f_C$')
+#     f.savefig('multileader_single_strategies_r5.png',bbox_inches='tight',dpi=300)
+#     f.clf()     
+#     return
 
 
 if __name__ == "__main__":
@@ -141,15 +134,15 @@ if __name__ == "__main__":
 
     deltaFv=np.linspace(0,8,num=50)
     pSv=np.linspace(0.,1.,num=50)
-    rv=[5,6,7]
+    rv=np.linspace(1, 10, 10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='results/h4/ps/heterogeneous_leader_M0_f0_dfdlrps_sstrat'
-    # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaFv)
-    # np.save(labfilenpy,MAT)             # save matrix for heatmap
-    # print('data saved to file!')
+    labfilenpy='results/h4/ps/heterogeneous_leader_M0_f0_dfdlrps_sstrat_multi'
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaFv)
+    np.save(labfilenpy,MAT)             # save matrix for heatmap
+    print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
-    plotCOOPheat(MAT,deltaFv,pSv,rv,labfilenpy)      # plot heatmap
+    plotCOOPheat(MAT,deltaFv,pSv,6,labfilenpy)      # plot heatmap
     #plotsingleheat(MAT,fv,rv,labfilenpy)
 #####################################################

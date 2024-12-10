@@ -8,8 +8,8 @@ def gaussian(x, mu, sig):
 file = 'results/multileader/cl/res_4strats_M0_f0'
 data = np.load(file + '.npy')
 
-nr = 5
-nc = 2
+nr = 2
+nc = 5
 fntsize=15
 
 pSv=np.linspace(0.,1.,num=50)
@@ -22,7 +22,7 @@ eps1 = 1 - eps
 rv=np.linspace(1,10,num=10)
 
 
-fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,12))
+fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(10,5))
 fig.subplots_adjust(hspace=0.4, wspace=0.2)
 nticksY=6
 nticksX=3
@@ -89,6 +89,9 @@ for idr, r in enumerate(rv):
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
 
+                totls = pleadS * Nsl + pleadW * Nwl
+                looklead = 1 / (1 + np.exp(-totls))
+
                 coop_w = 0
                 coop_s = 0
 
@@ -96,24 +99,32 @@ for idr, r in enumerate(rv):
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
                     (N - Nsl - Nwl) * ( # non leaders
                         pW * ( # weak
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
-                                (pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
-                                (pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                            looklead * (
+                                follow_w * ( # choose a weak leader
+                                    (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
+                                    (pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                                ) + 
+                                follow_s * ( # choose a strong leader
+                                    (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
+                                    (pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                                )
+                            ) + (1 - looklead) * (
+                                pwc * eps1 + pwd * eps
                             )
                         ) +
                         pS * ( #strong
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
-                                (pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
-                                (pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
-                            )                            
+                            looklead * (
+                                follow_w * ( # choose a weak leader
+                                    (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
+                                    (pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
+                                ) + 
+                                follow_s * ( # choose a strong leader
+                                    (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
+                                    (pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
+                                )   
+                            ) + (1 - looklead) * (
+                                psc * eps1 + psd * eps
+                            )                         
                         )
                     )
                 )
@@ -134,13 +145,11 @@ for idr, r in enumerate(rv):
         if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
         ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
 
-legend_elements = [Line2D([], [], marker='s', color='gold', label='No Leader',
-                           markerfacecolor='gold', markersize=10, linestyle='None')]
-legend_elements += [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
+legend_elements = [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
 legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+1)), label='%d'%deltaLv[idx],
                           markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
-plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
+plt.legend( loc='upper center', bbox_to_anchor=(-2., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig.png', bbox_inches='tight', dpi=300)
+plt.savefig('multileader_fig_new.png', bbox_inches='tight', dpi=300)
 
 plt.show()
