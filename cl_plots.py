@@ -8,8 +8,8 @@ def gaussian(x, mu, sig):
 file = 'results/multileader/cl/res_4strats_M0_f0'
 data = np.load(file + '.npy')
 
-nr = 5
-nc = 2
+nr = 2
+nc = 5
 fntsize=15
 
 pSv=np.linspace(0.,1.,num=50)
@@ -22,7 +22,7 @@ eps1 = 1 - eps
 rv=np.linspace(1,10,num=10)
 
 
-fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,12))
+fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(10,5))
 fig.subplots_adjust(hspace=0.4, wspace=0.2)
 nticksY=6
 nticksX=3
@@ -80,28 +80,39 @@ for idr, r in enumerate(rv):
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
 
+                totls = pleadS * Nsl + pleadW * Nwl
+                looklead = 1 / (1 + np.exp(-totls))
+
                 cl = (
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
                     (N - Nsl - Nwl) * ( # non leaders
                         pW * ( # weak
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
-                                (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
-                                (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
+                            looklead * (
+                                follow_w * ( # choose a weak leader
+                                    (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
+                                    (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
+                                ) + 
+                                follow_s * ( # choose a strong leader
+                                    (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
+                                    (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
+                                )
+                            ) + (1 - looklead) * (
+                                pwc * eps1 + pwd * eps
                             )
                         ) +
                         pS * ( #strong
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
-                                (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
-                                (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
-                            )                            
+                            looklead * (
+                                follow_w * ( # choose a weak leader
+                                    (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
+                                    (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
+                                ) + 
+                                follow_s * ( # choose a strong leader
+                                    (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
+                                    (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
+                                )   
+                            ) + (1 - looklead) * (
+                                psc * eps1 + psd * eps
+                            )                         
                         )
                     )
                 )

@@ -64,7 +64,6 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label,strategies):
     plt.text(-10, 130, f"r={r}",size=fntsize)
     f.savefig(f'4bitstrats/aggregates_strategies_r{r}_lead.png',bbox_inches='tight',dpi=300)
     plt.show()
-    f.clf()     
     return
 
 def plotsingleheat(MAT,fv,rv,label):

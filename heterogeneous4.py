@@ -97,29 +97,39 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
 
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
+                totls = pleadS * Nsl + pleadW * Nwl
+                looklead = 1 / (1 + np.exp(-totls))
 
                 benefit = (
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
                     (N - Nsl - Nwl) * ( # non leaders
                         pW * ( # weak
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
-                                (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
-                                (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
+                            looklead * ( # find a leader
+                                follow_w * ( # choose a weak leader
+                                    (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
+                                    (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
+                                ) + 
+                                follow_s * ( # choose a strong leader
+                                    (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
+                                    (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
+                                )
+                            ) + (1 - looklead) * ( # do not find a leader
+                                pwc * eps1 + pwd * eps
                             )
                         ) +
                         pS * ( #strong
-                            follow_w * ( # choose a weak leader
-                                (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
-                                (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
-                            ) + 
-                            follow_s * ( # choose a strong leader
-                                (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
-                                (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
-                            )                            
+                            looklead * (
+                                follow_w * ( # choose a weak leader
+                                    (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
+                                    (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
+                                ) + 
+                                follow_s * ( # choose a strong leader
+                                    (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
+                                    (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
+                                )
+                            ) + (1 - looklead) * (
+                                psc * eps1 + psd * eps
+                            )                       
                         )
                     )
                 )
@@ -128,26 +138,34 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                     pW * ( # focus player is weak
                         pwl * aeps(s1[0], eps) + # focus playes is a leader
                         (1 - pwl) * ( # is not a leader
-                            follow_w * ( # choose weak leader
-                                (1 - pF[0, 0]) * aeps(s1[2], eps) +
-                                pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
-                            ) + 
-                            follow_s * (
-                                (1 - pF[0, 1]) * aeps(s1[2], eps) +
-                                pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
+                            looklead * (
+                                follow_w * ( # choose weak leader
+                                    (1 - pF[0, 0]) * aeps(s1[2], eps) +
+                                    pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
+                                ) + 
+                                follow_s * (
+                                    (1 - pF[0, 1]) * aeps(s1[2], eps) +
+                                    pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
+                                )
+                            ) + (1 - looklead) * (
+                                aeps(s1[2], eps)
                             )
                         )
                     ) +
                     pS * ( # focus player is strong
                         psl * aeps(s1[1], eps) + # focus playes is a leader
                         (1 - psl) * ( # is not a leader
-                            follow_w * ( # choose weak leader
-                                (1 - pF[1, 0]) * aeps(s1[3], eps) +
-                                pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
-                            ) + 
-                            follow_s * (
-                                (1 - pF[1, 1]) * aeps(s1[3], eps) +
-                                pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
+                            looklead * (
+                                follow_w * ( # choose weak leader
+                                    (1 - pF[1, 0]) * aeps(s1[3], eps) +
+                                    pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
+                                ) + 
+                                follow_s * (
+                                    (1 - pF[1, 1]) * aeps(s1[3], eps) +
+                                    pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
+                                )
+                            ) + (1 - looklead) * (
+                                aeps(s1[3], eps)
                             )
                         )
                     )
