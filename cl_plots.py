@@ -89,8 +89,7 @@ for idr, r in enumerate(rv):
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
 
-                totls = pleadS * Nsl + pleadW * Nwl
-                looklead = 1 / (1 + np.exp(-totls))
+                p1leader = 1 - (((1 - pleadW)**Nw) * ((1 - pleadS)**Ns))
 
                 coop_w = 0
                 coop_s = 0
@@ -99,7 +98,7 @@ for idr, r in enumerate(rv):
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
                     (N - Nsl - Nwl) * ( # non leaders
                         pW * ( # weak
-                            looklead * (
+                            p1leader * (
                                 follow_w * ( # choose a weak leader
                                     (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
                                     (pF[0, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
@@ -108,12 +107,12 @@ for idr, r in enumerate(rv):
                                     (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
                                     (pF[0, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
                                 )
-                            ) + (1 - looklead) * (
+                            ) + (1 - p1leader) * (
                                 pwc * eps1 + pwd * eps
                             )
                         ) +
                         pS * ( #strong
-                            looklead * (
+                            p1leader * (
                                 follow_w * ( # choose a weak leader
                                     (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
                                     (pF[1, 0] * (pwc * (eps1**2 + eps**2) + pwd * (2*eps1*eps))) # follow
@@ -122,7 +121,7 @@ for idr, r in enumerate(rv):
                                     (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
                                     (pF[1, 1] * (psc * (eps1**2 + eps**2) + psd * (2*eps1*eps)))
                                 )   
-                            ) + (1 - looklead) * (
+                            ) + (1 - p1leader) * (
                                 psc * eps1 + psd * eps
                             )                         
                         )
@@ -150,6 +149,6 @@ legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+
                           markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(-2., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig_new.png', bbox_inches='tight', dpi=300)
+plt.savefig('multileader_fig_newnew.png', bbox_inches='tight', dpi=300)
 
 plt.show()
