@@ -97,14 +97,13 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
 
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
-                totls = pleadS * Nsl + pleadW * Nwl
-                looklead = 1 / (1 + np.exp(-totls))
+                p1leader = 1 - (((1 - pleadW)**Nw) * ((1 - pleadS)**Ns)) # prob that there is at least 1 leader
 
                 benefit = (
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
                     (N - Nsl - Nwl) * ( # non leaders
                         pW * ( # weak
-                            looklead * ( # find a leader
+                            p1leader * ( # find a leader
                                 follow_w * ( # choose a weak leader
                                     (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
                                     (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
@@ -113,12 +112,12 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                                     (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
                                     (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                                 )
-                            ) + (1 - looklead) * ( # do not find a leader
+                            ) + (1 - p1leader) * ( # do not find a leader
                                 pwc * eps1 + pwd * eps
                             )
                         ) +
                         pS * ( #strong
-                            looklead * (
+                            p1leader * (
                                 follow_w * ( # choose a weak leader
                                     (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
                                     (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
@@ -127,7 +126,7 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                                     (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
                                     (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                                 )
-                            ) + (1 - looklead) * (
+                            ) + (1 - p1leader) * (
                                 psc * eps1 + psd * eps
                             )                       
                         )
@@ -138,7 +137,7 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                     pW * ( # focus player is weak
                         pwl * aeps(s1[0], eps) + # focus playes is a leader
                         (1 - pwl) * ( # is not a leader
-                            looklead * (
+                            p1leader * (
                                 follow_w * ( # choose weak leader
                                     (1 - pF[0, 0]) * aeps(s1[2], eps) +
                                     pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
@@ -147,15 +146,15 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                                     (1 - pF[0, 1]) * aeps(s1[2], eps) +
                                     pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
                                 )
-                            ) + (1 - looklead) * (
-                                aeps(s1[2], eps)
+                            ) + (1 - p1leader) * (
+                                aeps(s1[0], eps)
                             )
                         )
                     ) +
                     pS * ( # focus player is strong
                         psl * aeps(s1[1], eps) + # focus playes is a leader
                         (1 - psl) * ( # is not a leader
-                            looklead * (
+                            p1leader * (
                                 follow_w * ( # choose weak leader
                                     (1 - pF[1, 0]) * aeps(s1[3], eps) +
                                     pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
@@ -164,8 +163,8 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                                     (1 - pF[1, 1]) * aeps(s1[3], eps) +
                                     pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
                                 )
-                            ) + (1 - looklead) * (
-                                aeps(s1[3], eps)
+                            ) + (1 - p1leader) * (
+                                aeps(s1[1], eps)
                             )
                         )
                     )

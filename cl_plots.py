@@ -80,14 +80,13 @@ for idr, r in enumerate(rv):
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
 
-                totls = pleadS * Nsl + pleadW * Nwl
-                looklead = 1 / (1 + np.exp(-totls))
+                p1leader = 1 - (((1 - pleadW)**Nw) * ((1 - pleadS)**Ns))
 
                 cl = (
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
                     (N - Nsl - Nwl) * ( # non leaders
                         pW * ( # weak
-                            looklead * (
+                            p1leader * (
                                 follow_w * ( # choose a weak leader
                                     (1 - pF[0, 0]) * (pwc * eps1 + pwd * eps) + # not follow
                                     (pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
@@ -96,12 +95,12 @@ for idr, r in enumerate(rv):
                                     (1 - pF[0, 1]) * (pwc * eps1 + pwd * eps) +
                                     (pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                                 )
-                            ) + (1 - looklead) * (
+                            ) + (1 - p1leader) * (
                                 pwc * eps1 + pwd * eps
                             )
                         ) +
                         pS * ( #strong
-                            looklead * (
+                            p1leader * (
                                 follow_w * ( # choose a weak leader
                                     (1 - pF[1, 0]) * (psc * eps1 + psd * eps) + # not follow
                                     (pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))) # follow
@@ -110,7 +109,7 @@ for idr, r in enumerate(rv):
                                     (1 - pF[1, 1]) * (psc * eps1 + psd * eps) +
                                     (pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps)))
                                 )   
-                            ) + (1 - looklead) * (
+                            ) + (1 - p1leader) * (
                                 psc * eps1 + psd * eps
                             )                         
                         )
@@ -130,16 +129,14 @@ for idr, r in enumerate(rv):
         ax.plot(res, label='$\Delta_f=\Delta_f=%d$'%deltaF, color=cmap((iddl+1)/(len(deltaLv)+1)))
 
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
-        if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
+        if j==0: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
         ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
 
-legend_elements = [Line2D([], [], marker='s', color='gold', label='No Leader',
-                           markerfacecolor='gold', markersize=10, linestyle='None')]
-legend_elements += [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
+legend_elements = [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
 legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv))), label='%d'%deltaLv[idx],
                           markerfacecolor=cmap((idx)/(len(deltaLv))), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
-plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
+plt.legend( loc='upper center', bbox_to_anchor=(-2., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig_16strat.png', bbox_inches='tight', dpi=300)
+plt.savefig('multileader_fig_16stratnew.png', bbox_inches='tight', dpi=300)
 
 plt.show()

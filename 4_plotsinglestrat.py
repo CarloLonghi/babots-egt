@@ -35,7 +35,9 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label,strategies):
     nc=nr
     f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(10,15))
     f.subplots_adjust(hspace=0.4, wspace=0.2)
-    labels = ["[*,*,0,0]","[*,*,1,0]","[*,*,0,1]","[*,*,1,1]"]
+    labels = ["[0,0,*,*]","[1,0,*,*]","[0,1,*,*]","[1,1,*,*]"]
+    # labels = ["[0,0,0,0]","[1,0,0,0]","[0,1,0,0]","[1,1,0,0]","[0,0,1,0]","[1,0,1,0]","[0,1,1,0]","[1,1,1,0]",
+    #           "[0,0,0,1]","[1,0,0,1]","[0,1,0,1]","[1,1,0,1]","[0,0,1,1]","[1,0,1,1]","[0,1,1,1]","[1,1,1,1]"]
     for ids, strat in enumerate(strategies):
         i = ids // nc
         j = ids % nc
@@ -62,7 +64,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label,strategies):
         # ax.scatter(points_x, points_y, color='goldenrod', marker='o')
     
     plt.text(-10, 130, f"r={r}",size=fntsize)
-    f.savefig(f'4bitstrats/aggregates_strategies_r{r}_lead.png',bbox_inches='tight',dpi=300)
+    f.savefig(f'4bitstratsnewnew/aggregates_strategies_r{r}_lead.png',bbox_inches='tight',dpi=300)
     plt.show()
     return
 
@@ -141,16 +143,16 @@ if __name__ == "__main__":
     # print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
-    strategies = np.array([
-        [0,1,2,3],
-        [4,5,6,7],
-        [8,9,10,11],
-        [12,13,14,15]])
-    # strategies = np.array([[0,4,8,12],
-    #     [1,5,9,13],
-    #     [2,6,10,14],
-    #     [3,7,11,15]])    
-    #strategies = np.array([[i,] for i in range(16)])
+    # strategies = np.array([
+        # [0,1,2,3],
+        # [4,5,6,7],
+        # [8,9,10,11],
+        # [12,13,14,15]])
+    strategies = np.array([[0,4,8,12],
+        [1,5,9,13],
+        [2,6,10,14],
+        [3,7,11,15]])    
+    # strategies = np.array([[i,] for i in range(16)])
     plotCOOPheat(MAT,deltaLv,pSv,10,labfilenpy,strategies)      # plot heatmap
     # plotsingleheat(MAT,fv,rv,labfilenpy)
 #####################################################
