@@ -86,24 +86,8 @@ def calcWCD(N,eps,beta,pS,deltaL,M):
                     not_following = np.sum(not_following, axis=1)
                     no_leaders = (1 - strengths) * (1 - p1leader) * (actions * eps1 + (1 - actions) * eps)
                     leading = strengths * (actions * eps1 + (1 - actions) * eps) 
-                    b = np.sum(leading + not_following + following + no_leaders)
-                    
-
-                    leading = strategies * leading
-                    focus_actions = actions * strategies
-                    leader_choice = np.expand_dims(strategies, 1) * leader_choice
-                    diff = np.array([[s_diff[i][j] * strategies[j] for i in range(N) if j != i] for j in range(N)])
-                    fp = 1 / (1 + np.exp(-(diff)))
-                    # leader_choice = (strengths * strengths) / sum(strengths * strengths)
-                    # leader_choice = np.array([[leader_choice[i] * strategies[j] for i in range(N) if i != j] for j in range(N)])
-                    not_following = np.expand_dims((1 - strengths) * strategies, 1) * p1leader * leader_choice * (1 - fp) * (
-                        np.expand_dims(focus_actions, 1) * eps1 + np.expand_dims((1 - focus_actions), 1) * eps)
-                    not_following = np.sum(not_following, axis=1)
-                    following = np.expand_dims((1 - strengths) * strategies, 1) * p1leader * leader_choice * fp * (
-                        leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
-                    following = np.sum(following, axis=1)
-                    no_leaders = (1 - strengths) * (1 - p1leader) * (focus_actions * eps1 + (1 - focus_actions) * eps)
-                    c = np.sum(leading + following + not_following + no_leaders)
+                    b = np.sum(leading + not_following + following + no_leaders)                    
+                    c = np.sum(strategies * (leading + following + not_following + no_leaders))
                     if k > 0:
                         c /= k
 
@@ -115,8 +99,6 @@ def calcWCD(N,eps,beta,pS,deltaL,M):
                 cost /= combs.shape[0]
 
                 # TODO consider the case in which the leaders that are chosen vote to agree on a single action and then the followers follow this action
-
-                ## each player has prob of being s1 as k/N, prob of leading and of following chosen correspondingly among the N already calculated.
 
                 # TODO how do you define a strong or a weak player if the strength level is not 1 or 0
                 ## could be a threshold over/under 0.5
