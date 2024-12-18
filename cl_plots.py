@@ -8,24 +8,23 @@ def gaussian(x, mu, sig):
 def fermi(x, beta):
     return 1 / (1 + np.exp(-beta * x))
 
-file = 'results/multileader/cl/res_4strats_M0_f0_sdist_update'
+file = 'results/multileader/cl/res_4strats_M0_f0_sdist_test'
 data = np.load(file + '.npy')
 
-nr = 5
-nc = 2
+nr = 2
+nc = 5
 fntsize=15
 
 #muv=[0, 0.25, 0.5, 0.75, 1.]
-betav=np.linspace(-5,5,num=50)
 N = 9
 eps = 0.01
 eps1 = 1 - eps
 rv=np.linspace(1,10,num=10)
+pSv=np.linspace(-8, 8, num=50)
 deltaLv=[0, 1, 2, 4, 8]
-pSv=np.linspace(0,1,num=50)
 
 
-fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,12))
+fig,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(10,5))
 fig.subplots_adjust(hspace=0.4, wspace=0.2)
 nticksY=6
 nticksX=3
@@ -45,48 +44,33 @@ for idr, r in enumerate(rv):
                 stratW = strat%2
                 stratS = strat//2
 
-                # set N levels of strength drawn from a prob. dist.
-                numS = int(np.round(N * pS))
-                numW = int(np.round(N * (1 - pS)))
-                s = 1 / (1 + np.exp(-deltaL))
-                w = 1 / (1 + np.exp(deltaL))
-                strengths = np.array([s,] * numS + [w,] * numW)
+                # strengths = np.array([0.3, 0.4, 0.4, 0.5, 0.5, 0.5, 0.6, 0.6, 0.7])
+                # strengths = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.9, 0.9])
+                x = np.linspace(-deltaL, deltaL, N)
+                strengths = 1 / (1 + np.exp(-(x + pS)))
 
                 s_diff = np.array([[strengths[i] - strengths[j] for j in range(N)] for i in range(N)])
-                p_leader = strengths / sum(strengths)
 
-                follow_prob = np.zeros((N, N))
-                for i in range(numS):
-                    for j in range(numS):
-                        follow_prob[i, j] = 1/(1+np.exp(0))
-                    for j in range(numS, numS + numW):
-                        follow_prob[i, j] = 1/(1+np.exp(-deltaL))
-                for i in range(numS, numS + numW):
-                    for j in range(numS):
-                        follow_prob[i, j] = 1/(1+np.exp(deltaL))
-                    for j in range(numS, numS + numW):
-                        follow_prob[i, j] = 1/(1+np.exp(0))
-
-                # actions = np.array([strengths[s] * stratS + (1 - strengths[s]) * stratW for s in range(N)])
-                actions = np.array([stratS for _ in range(numS)] + [stratW for _ in range(numW)])
+                actions = np.array([strengths[s] * stratS + (1 - strengths[s]) * stratW for s in range(N)])
 
                 b = np.zeros(N)
 
-                leader_choice = (strengths * strengths) / sum(strengths * strengths)
-                leader_choice = np.array([[leader_choice[i] for i in range(N) if i != j] for j in range(N)])
+                others = np.array([[strengths[j] for j in range(N) if j != i] for i in range(N)])
+                leader_choice = np.array([(others[i] * others[i]) / sum(others[i] * others[i]) for i in range(N)])
+                #leader_choice = np.array([[leader_choice[i] for i in range(N) if i != j] for j in range(N)])
                 leader_actions = np.array([[actions[j] for j in range(N) if j != i] for i in range(N)])
                 diff = np.array([[s_diff[leader][p] for p in range(N) if p != leader] for leader in range(N)])
-                # follow_prob = 1 / (1 + np.exp(-diff))
-                # fp = np.array([[follow_prob[i, j] for j in range(N) if i != j] for i in range(N)])
-                fp = np.array([[follow_prob[i, j] for i in range(N) if i != j] for j in range(N)])
-                following = np.expand_dims((1 - strengths), 1) * leader_choice * fp * (
+                fp = 1 / (1 + np.exp(-(diff)))
+                p1leader = 1 - np.prod(1 - strengths)
+                following = np.expand_dims((1 - strengths), 1) * p1leader * leader_choice * fp * (
                     leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
                 following = np.sum(following, axis=1)
-                not_following = np.expand_dims((1 - strengths), 1) * leader_choice * (1 - fp) * (
+                not_following = np.expand_dims((1 - strengths), 1) * p1leader * leader_choice * (1 - fp) * (
                     np.expand_dims(actions, 1) * eps1 + np.expand_dims((1 - actions), 1) * eps)
                 not_following = np.sum(not_following, axis=1)
+                no_leaders = (1 - strengths) * (1 - p1leader) * (actions * eps1 + (1 - actions) * eps)
                 leading = strengths * (actions * eps1 + (1 - actions) * eps) 
-                b = np.sum(leading + not_following + following)
+                b = np.sum(leading + not_following + following + no_leaders)
                     
                 cl = b / N
 
@@ -101,15 +85,15 @@ for idr, r in enumerate(rv):
         ax.plot(res, label='$\delta_L=%d$'%deltaL, color=cmap((iddl)/(len(deltaLv))))
         #ax.plot(res)
 
-        if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
-        if j==0 and i==nr//2: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
+        if i==nr-1: ax.set_xlabel('s_center', fontsize=fntsize)
+        if j==0: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
         ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
 
-legend_elements = [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
-legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv)+1)), label='%d'%deltaLv[idx],
+legend_elements = [Line2D([], [], marker='None', label='s_width', linestyle='None')]
+legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv)+1)), label='%.2f'%deltaLv[idx],
                           markerfacecolor=cmap((idx)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
-plt.legend( loc='upper center', bbox_to_anchor=(0., -0.6),
+plt.legend( loc='upper center', bbox_to_anchor=(-2., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig_baseline.png', bbox_inches='tight', dpi=300)
+plt.savefig('multileader_fig_sdist_test3.png', bbox_inches='tight', dpi=300)
 
 plt.show()

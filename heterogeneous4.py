@@ -51,53 +51,11 @@ def calcWCD(N,eps,beta,pS,deltaL,M):
     WCD=np.zeros((4,4,N+1,2))
     eps1=1.-eps
 
-    # set N levels of strength drawn from a prob. dist.
-    # x = np.linspace(0, 1, N - 1)
-    # #y = 1 - gaussian(x, 0.5, 0.5)
-    # y = 1 - gaussian(x, mu, sigma)
-    # y = y / sum(y) * 0.8
-    # y = y[:-1]
-    # strengths = np.array([0.1,])
-    # for step in y:
-    #     strengths = np.append(strengths, strengths[-1] + step)
-    # strengths = np.append(strengths, 0.9)
-
-    # alfa, beta = ab
-    # x = np.linspace(0.00001, 0.99999, 8)
-    # y = beta_dist(x, alfa, beta)
-    # y -= min(y)
-    # y /= max(y)
-    # y = 1 - y
-    # y = y / sum(y) * 0.8
-    # strengths = np.array([0.1])
-    # for step in y:
-    #     strengths = np.append(strengths, strengths[-1] + step)
-
-    # x = np.linspace(-2, 2, N)
-    # strengths = fermi(x, beta)
-
-    numS = int(np.round(N * pS))
-    numW = int(np.round(N * (1 - pS)))
-    s = 1 / (1 + np.exp(-deltaL))
-    w = 1 / (1 + np.exp(deltaL))
-    strengths = np.array([s,] * numS + [w,] * numW)
+    x = np.linspace(-deltaL, deltaL, N)
+    strengths = 1 / (1 + np.exp(-(x + pS)))
 
     s_diff = np.array([[strengths[i] - strengths[j] for j in range(N)] for i in range(N)])
-    s_diff = np.array([[1/(1+np.exp(0)) for j in range(numS)] + [1/(1+np.exp(-deltaL)) for j in range(numS, numS+numW)] for i in range(numS)] +
-                      [[1/(1+np.exp(deltaL)) for j in range(numS)] + [1/(1+np.exp(0)) for j in range(numS, numS + numW)] for i in range(numS, numS + numW)])
-    follow_prob = np.zeros((N, N))
-    for i in range(numS):
-        for j in range(numS):
-            follow_prob[i, j] = 1/(1+np.exp(0))
-        for j in range(numS, numS + numW):
-            follow_prob[i, j] = 1/(1+np.exp(-deltaL))
-    for i in range(numS, numS + numW):
-        for j in range(numS):
-            follow_prob[i, j] = 1/(1+np.exp(deltaL))
-        for j in range(numS, numS + numW):
-            follow_prob[i, j] = 1/(1+np.exp(0))    
-
-    p_leader = strengths / sum(strengths)
+    p1leader = 1 - np.prod(1 - strengths)
 
     for i in range(4):
         s1=[i%2,i//2] # s:[w,s], 0:[0,0], 1:[1,0], 2:[0,1], 3:[1,1]
@@ -111,49 +69,41 @@ def calcWCD(N,eps,beta,pS,deltaL,M):
                 for s1_idx in combs:
 
                     strategies = [1 if s in s1_idx else 0 for s in range(N)]
-                    # actions = np.array([strengths[s] * s1[1] + (1 - strengths[s]) * s1[0] if strategies[s] == 1
-                    #            else strengths[s] * s2[1] + (1 - strengths[s]) * s2[0]
-                    #            for s in range(N)])
-                    actions = np.array([s1[1] if strategies[s] == 1 else s2[1] for s in range(numS)] + 
-                                       [s1[0] if strategies[s] == 1 else s2[0] for s in range(numS, numS + numW)])
+                    actions = np.array([strengths[s] * s1[1] + (1 - strengths[s]) * s1[0] if strategies[s] == 1
+                               else strengths[s] * s2[1] + (1 - strengths[s]) * s2[0]
+                               for s in range(N)])
                     
-                    # leader_actions = np.expand_dims(actions, axis=1)
-                    # other_actions = np.array([[actions[p] for p in range(N) if p != leader] for leader in range(N)])
-                    # diff = np.array([[s_diff[leader][p] for p in range(N) if p != leader] for leader in range(N)])
-                    # follow_prob = 1 / (1 + np.exp(-diff))
-                    leader_choice = (strengths * strengths) / sum(strengths * strengths)
-                    leader_choice = np.array([[leader_choice[i] for i in range(N) if i != j] for j in range(N)])
+                    others = np.array([[strengths[j] for j in range(N) if j != i] for i in range(N)])
+                    leader_choice = np.array([(others[i] * others[i]) / sum(others[i] * others[i]) for i in range(N)])
                     leader_actions = np.array([[actions[j] for j in range(N) if j != i] for i in range(N)])
-                    diff = np.array([[s_diff[leader][p] for p in range(N) if p != leader] for leader in range(N)])
-                    # follow_prob = 1 / (1 + np.exp(-diff))
-                    # fp = np.array([[follow_prob[i, j] for j in range(N) if i != j] for i in range(N)])
-                    fp = np.array([[follow_prob[i, j] for i in range(N) if i != j] for j in range(N)])
-                    following = np.expand_dims((1 - strengths), 1) * leader_choice * fp * (
+                    diff = np.array([[s_diff[i][j] for i in range(N) if i != j] for j in range(N)])
+                    fp = 1 / (1 + np.exp(-(diff)))
+                    following = np.expand_dims((1 - strengths), 1) * p1leader * leader_choice * fp * (
                         leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
                     following = np.sum(following, axis=1)
-                    not_following = np.expand_dims((1 - strengths), 1) * leader_choice * (1 - fp) * (
+                    not_following = np.expand_dims((1 - strengths), 1) * p1leader * leader_choice * (1 - fp) * (
                         np.expand_dims(actions, 1) * eps1 + np.expand_dims((1 - actions), 1) * eps)
                     not_following = np.sum(not_following, axis=1)
+                    no_leaders = (1 - strengths) * (1 - p1leader) * (actions * eps1 + (1 - actions) * eps)
                     leading = strengths * (actions * eps1 + (1 - actions) * eps) 
-                    b = np.sum(leading + not_following + following)
+                    b = np.sum(leading + not_following + following + no_leaders)
                     
 
-                    #leader_actions = np.expand_dims(actions, 1)
-                    leader_actions = np.array([[actions[j] for j in range(N) if j != i] for i in range(N)])
-                    leading = strategies * strengths * (actions * eps1 + (1 - actions) * eps)
+                    leading = strategies * leading
                     focus_actions = actions * strategies
-                    leader_choice = (strengths * strengths) / sum(strengths * strengths)
-                    leader_choice = np.array([[leader_choice[i] * strategies[j] for i in range(N) if i != j] for j in range(N)])
-                    diff = np.array([[s_diff[leader][p] * strategies[p] for p in range(N) if p != leader] for leader in range(N)])
-                    # follow_prob = 1 / (1 + np.exp(-diff))
-                    fp = np.array([[follow_prob[leader, j] * strategies[j] for leader in range(N) if j != leader] for j in range(N)])
-                    not_following = np.expand_dims((1 - strengths) * strategies, 1) * leader_choice * (1 - fp) * (
+                    leader_choice = np.expand_dims(strategies, 1) * leader_choice
+                    diff = np.array([[s_diff[i][j] * strategies[j] for i in range(N) if j != i] for j in range(N)])
+                    fp = 1 / (1 + np.exp(-(diff)))
+                    # leader_choice = (strengths * strengths) / sum(strengths * strengths)
+                    # leader_choice = np.array([[leader_choice[i] * strategies[j] for i in range(N) if i != j] for j in range(N)])
+                    not_following = np.expand_dims((1 - strengths) * strategies, 1) * p1leader * leader_choice * (1 - fp) * (
                         np.expand_dims(focus_actions, 1) * eps1 + np.expand_dims((1 - focus_actions), 1) * eps)
                     not_following = np.sum(not_following, axis=1)
-                    following = np.expand_dims((1 - strengths) * strategies, 1) * leader_choice * fp * (
+                    following = np.expand_dims((1 - strengths) * strategies, 1) * p1leader * leader_choice * fp * (
                         leader_actions * (eps1**2 + eps**2) + (1 - leader_actions) * (2 * eps1 * eps))
                     following = np.sum(following, axis=1)
-                    c = np.sum(leading + following + not_following)
+                    no_leaders = (1 - strengths) * (1 - p1leader) * (focus_actions * eps1 + (1 - focus_actions) * eps)
+                    c = np.sum(leading + following + not_following + no_leaders)
                     if k > 0:
                         c /= k
 

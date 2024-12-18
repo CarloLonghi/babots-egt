@@ -3,7 +3,7 @@ import evoEGT as evo
 from heterogeneous4 import calcH, calcWCD
 from noleadermodel import calcWCD as calcWCDnoleader
 
-def coop_pF_r(rv,M,N,HZ,beta,eps,betav,pSv,deltaLv):
+def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,deltaLv):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
 # Output: matrix with the fraction of cooperators as a function of pF and r
     if np.isscalar(HZ):
@@ -17,7 +17,6 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,betav,pSv,deltaLv):
             #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
             Wpop=evo.calcWpop(WCD,HZ,info=False)
             for idr, r, in enumerate(rv):
-                print(r, pS, deltaL)
                 fixM,_=evo.calcFIXM(Wpop,[r,-1],beta,check=False)
                 SD=evo.calcSD(fixM)
                 #SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
@@ -101,13 +100,12 @@ if __name__ == "__main__":
     betaF=1
 
     #muv=[0, 0.25, 0.5, 0.75, 1.]
-    betav=np.linspace(-5,5.,num=50)
     rv=np.linspace(1,10,num=10)
-    pSv=np.linspace(0,1,num=50)
+    pSv=np.linspace(-8, 8, num=50)
     deltaLv=[0, 1, 2, 4, 8]
     
-    labfilenpy='results/multileader/cl/res_4strats_M0_f0_sdist_update'
-    MAT=coop_pF_r(rv,M,N,Z,beta,eps,betav,pSv,deltaLv)
+    labfilenpy='results/multileader/cl/res_4strats_M0_f0_sdist_test'
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps, pSv, deltaLv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')
     
