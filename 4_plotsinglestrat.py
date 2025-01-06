@@ -52,7 +52,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label):
         cmaps=['Greens','Reds','Blues','Purples']
         step=0.025
         levels = np.arange(0, 1., step) + step
-        h=ax.contourf(MAT[:,:,r,strat],levels,cmap=cmaps[strat], origin='lower',)
+        h=ax.contourf(MAT[:,:,r-1,strat],levels,cmap=cmaps[strat], origin='lower',)
         #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
         nticksY=5
         nticksX=3
@@ -64,7 +64,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label):
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
         if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
     
-    f.savefig('multileader_single_strategies_r6.png',bbox_inches='tight',dpi=300)
+    f.savefig('multileader_single_strategies_r7.png',bbox_inches='tight',dpi=300)
     plt.show()
     return
 

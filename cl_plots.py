@@ -78,14 +78,6 @@ for idr, r in enumerate(rv):
                     psd = 1 - psc
                     psl = Nsl / Ns
 
-                strengths = np.linspace(0.1, 0.9, N)
-                sPs = gaussian(strengths, 0.5, 0.5)
-                sPs = sPs / sPs.sum()
-                sPw = gaussian(strengths, 0, 0.5)
-                sPw = sPw / sPw.sum()
-                strongS = (sPs * strengths).sum()
-                weakS = (sPw * strengths).sum()
-
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
 
