@@ -67,66 +67,194 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                 Nwd = N*pW-Nwc
                 Nsd = N*pS-Nsc
 
-                benefit_s = 0
-                benefit_w = 0
-                cost_s = 0
-                cost_w = 0
+                benefit_ss = 0
+                benefit_ww = 0
+                benefit_sw = 0
+                cost_ss = 0
+                cost_ww = 0
+                cost_sw = 0
 
                 if Nw > 0:
-                    benefit_w = (
-                        (Nwc/Nw)*( # leader is a cooperator
-                            eps1 + 
-                            (1-pF[0,0])*((Nwc-1)*eps1 + Nwd*eps)+
+                    benefit_ww = (
+                        ((Nwc/Nw)*((Nwc)/(Nw)))*( # both leaders are cooperators
+                            eps1*2 + 
+                            (1-pF[0,0])*((Nwc-2)*eps1 + Nwd*eps)+
                             (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
-                        ) + (Nwd/Nw)*( # leader is a defector
-                            eps + 
-                            (1-pF[0,0])*(Nwc*eps1 + (Nwd-1)*eps)+
+                            pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
+                        ) + ((Nwd/Nw)*((Nwd)/(Nw)))*( # both leaders are defectors
+                            eps*2 + 
+                            (1-pF[0,0])*(Nwc*eps1 + (Nwd-2)*eps)+
                             (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-1)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
+                            pF[0,0]*(Nw-2)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
+                        ) + ((Nwc/Nw)*(Nwd/(Nw)))*( # one cooperator one defector
+                            eps1+eps +
+                            (1-pF[0,0])*((Nwc)*eps1 + (Nwd)*eps)+
+                            (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
+                            (1/2)*(pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)) + # choose cooperating leader
+                            (1/2)*(pF[0,0]*(Nw-2)*(2*eps*eps1)+pF[1,0]*Ns*(2*eps*eps1)) # choose defecting leader
                         )
                     )
 
-                    cost_w = pW*( # focus player is weak
-                        (1/Nw)*aeps(s1[0],eps)+
-                        (1-(1/Nw))*(
+                    cost_ww = pW*( # focus player is weak
+                        (2/Nw)*aeps(s1[0],eps)+
+                        (1-(2/Nw))*(
                             (1-pF[0,0])*aeps(s1[0],eps)+
-                            pF[0,0]*((Nwc/Nw)*(eps1**2+eps**2) + (Nwd/Nw)*(2*eps1*eps))
+                            pF[0,0]*(
+                                ((Nwc/Nw)*((Nwc)/(Nw)))*(eps1**2+eps**2) +
+                                ((Nwd/Nw)*((Nwd)/(Nw)))*(2*eps1*eps) +
+                                ((Nwc/Nw)*(Nwd/(Nw)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps)))
                         )
-                    ) + pS*( # focus player is strong
-                        (1-pF[1,0])*aeps(s1[1],eps)+
-                        pF[1,0]*((Nwc/Nw)*(eps1**2+eps**2) + (Nwd/Nw)*(2*eps1*eps))                        
-                    )
+                        ) + pS*( # focus player is strong
+                            (1-pF[1,0])*aeps(s1[1],eps)+
+                            pF[1,0]*(
+                                ((Nwc/Nw)*((Nwc)/(Nw)))*(eps1**2+eps**2) +
+                                ((Nwd/Nw)*((Nwd)/(Nw)))*(2*eps1*eps) +
+                                ((Nwc/Nw)*(Nwd/(Nw)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps)))                            
+                        )  
 
                 if Ns > 0:
-
-                    benefit_s = (
-                        (Nsc/Ns)*( # leader is a cooperator
-                            eps1 + 
+                    benefit_ss = (
+                        ((Nsc/Ns)*((Nsc)/(Ns)))*( # both leaders are cooperators
+                            eps1*2 + 
                             (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*((Nsc-1)*eps1 + Nsd*eps)+
-                            pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)
-                        ) + (Nsd/Ns)*( # leader is a defector
-                            eps + 
+                            (1-pF[1,1])*((Nsc-2)*eps1 + Nsd*eps)+
+                            pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)
+                        ) + ((Nsd/Ns)*((Nsd)/(Ns)))*( # both leaders are defectors
+                            eps*2 + 
                             (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*(Nsc*eps1 + (Nsd-1)*eps)+
-                            pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-1)*(2*eps*eps1)
+                            (1-pF[1,1])*(Nsc*eps1 + (Nsd-2)*eps)+
+                            pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-2)*(2*eps*eps1)
+                        ) + ((Nsc/Ns)*(Nsd/(Ns)))*( # one cooperator one defector
+                            eps1+eps +
+                            (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
+                            (1-pF[1,1])*((Nsc)*eps1 + (Nsd)*eps)+
+                            (1/2)*(pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)) + # choose cooperating leader
+                            (1/2)*(pF[0,1]*Nw*(2*eps*eps1)+pF[1,1]*(Ns-2)*(2*eps*eps1)) # choose defecting leader
                         )
                     )
 
-                    cost_s = pW*( # focus player is weak
+                    cost_ss = pW*( # focus player is weak
                         (1-pF[0,1])*aeps(s1[0],eps)+
-                        pF[0,1]*((Nsc/Ns)*(eps1**2+eps**2) + (Nsd/Ns)*(2*eps1*eps))
-                    ) + pS*( # focus player is strong
-                        (1/Ns)*aeps(s1[1],eps)+
-                        (1-(1/Ns))*(
-                            (1-pF[1,1])*aeps(s1[1],eps)+
-                            pF[1,1]*((Nsc/Ns)*(eps1**2+eps**2) + (Nsd/Ns)*(2*eps1*eps))                        
+                        pF[0,1]*(
+                            ((Nsc/Ns)*((Nsc)/(Ns)))*(eps1**2+eps**2) +
+                            ((Nsd/Ns)*((Nsd)/(Ns)))*(2*eps1*eps) +
+                            ((Nsc/Ns)*(Nsd/(Ns)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps))                           
                         )
-                    )
+                    ) + pS*( # focus player is strong
+                        (2/Ns)*aeps(s1[1],eps)+
+                        (1-(2/Ns))*(
+                            (1-pF[1,1])*aeps(s1[1],eps)+
+                            pF[1,1]*(
+                            ((Nsc/Ns)*((Nsc)/(Ns)))*(eps1**2+eps**2) +
+                            ((Nsd/Ns)*((Nsd)/(Ns)))*(2*eps1*eps) +
+                            ((Nsc/Ns)*(Nsd/(Ns)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps))                                
+                            )                        
+                        )
+                    )      
 
-                benefit = ((Nw*fw)/(Nw*fw+Ns*fs))*benefit_w + ((Ns*fs)/(Nw*fw+Ns*fs))*benefit_s
-                cost = ((Nw*fw)/(Nw*fw+Ns*fs))*cost_w + ((Ns*fs)/(Nw*fw+Ns*fs))*cost_s
+                if Ns > 0 and Nw > 0:
+                    benefit_sw = (
+                        ((Nsc/Ns)*(Nwc/Nw))*( # both leaders are cooperators
+                            eps1*2 +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,0])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,0]*(Nw)*(eps1**2+eps**2)+pF[1,0]*(Ns)*(eps1**2+eps**2)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,1])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,1]*(Nw)*(eps1**2+eps**2)+pF[1,1]*(Ns)*(eps1**2+eps**2)                                    
+                                )
+                            )
+                        )+
+                        ((Nsd/Ns)*(Nwd/Nw))*( # both leaders are defectors
+                            eps*2 +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,0])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,1])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,1]*(Nw)*(2*eps1*eps)+pF[1,1]*(Ns)*(2*eps1*eps)                                    
+                                )
+                            )
+                        )+
+                        ((Nsd/Ns)*(Nwc/Nw))*( # one weak cooperator one strong defector
+                            eps1+eps +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,0])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,0]*(Nw)*(eps1**2+eps**2)+pF[1,0]*(Ns)*(eps1**2+eps**2)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,1])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,1]*(Nw)*(2*eps1*eps)+pF[1,1]*(Ns)*(2*eps1*eps)                                    
+                                )
+                            )
+                        )+
+                        ((Nsc/Ns)*(Nwd/Nw))*( # one strong cooperator one weak defector
+                            eps1+eps +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,0])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,1])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,1]*(Nw)*(eps1**2+eps**2)+pF[1,1]*(Ns)*(eps1**2+eps**2)                                    
+                                )
+                            )
+                        )                                                                                    
+                    )                
+
+                    cost_sw = pW*( # focus player is weak
+                            (1/Nw)*aeps(s1[0],eps)+
+                            (1-(1/Nw))*(
+                                ((Nsc/Ns)*(Nwc/Nw))*((fw/(fw+fs))*(pF[0,0]*(eps1**2+eps**2) + (1-pF[0,0])*aeps(s1[0],eps))+
+                                                     (fs/(fw+fs))*(pF[0,1]*(eps1**2+eps**2) + (1 - pF[0,1])*aeps(s1[0],eps)))+
+                                ((Nsd/Ns)*(Nwd/Nw))*((fw/(fw+fs))*(pF[0,0]*(2*eps1*eps) + (1-pF[0,0]*aeps(s1[0],eps)))+
+                                                     (fs/(fw+fs))*(pF[0,1]*(2*eps1*eps) + (1-pF[0,1]*aeps(s1[0],eps))))+
+                                ((Nsd/Ns)*(Nwc/Nw))*((fw/(fw+fs))*(pF[0,0]*(eps1**2+eps**2) + (1-pF[0,0])*aeps(s1[0],eps))+
+                                                     (fs/(fw+fs))*(pF[0,1]*(2*eps1*eps) + (1-pF[0,1])*aeps(s1[0],eps))) + 
+                                ((Nsc/Ns)*(Nwd/Nw))*((fs/(fw+fs))*(pF[0,1]*(eps1**2+eps**2) + (1-pF[0,1])*aeps(s1[0],eps))+
+                                                     (fw/(fw+fs))*(pF[0,0]*(2*eps1*eps) + (1-pF[0,0])*aeps(s1[0],eps)))
+                            )
+                        ) + pS*( # focus player is strong
+                            (1/Ns)*aeps(s1[1],eps)+
+                            (1-(1/Ns))*(
+                                ((Nsc/Ns)*(Nwc/Nw))*((fw/(fw+fs))*(pF[1,0]*(eps1**2+eps**2) + (1-pF[1,0])*aeps(s1[1],eps))+
+                                                     (fs/(fw+fs))*(pF[1,1]*(eps1**2+eps**2) + (1 - pF[0,1])*aeps(s1[1],eps)))+
+                                ((Nsd/Ns)*(Nwd/Nw))*((fw/(fw+fs))*(pF[1,0]*(2*eps1*eps) + (1-pF[1,0]*aeps(s1[1],eps)))+
+                                                     (fs/(fw+fs))*(pF[1,1]*(2*eps1*eps) + (1-pF[1,1]*aeps(s1[1],eps))))+
+                                ((Nsd/Ns)*(Nwc/Nw))*((fw/(fw+fs))*(pF[1,0]*(eps1**2+eps**2) + (1-pF[1,0])*aeps(s1[1],eps))+
+                                                     (fs/(fw+fs))*(pF[1,1]*(2*eps1*eps) + (1-pF[1,1])*aeps(s1[1],eps))) + 
+                                ((Nsc/Ns)*(Nwd/Nw))*((fs/(fw+fs))*(pF[1,1]*(eps1**2+eps**2) + (1-pF[1,1])*aeps(s1[1],eps))+
+                                                     (fw/(fw+fs))*(pF[1,0]*(2*eps1*eps) + (1-pF[1,0])*aeps(s1[1],eps)))
+                            )
+                        )   
+
+                benefit = (
+                    ((Nw*fw*(Nw)*fw)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * benefit_ww +
+                    ((Ns*fs*(Ns)*fs)/(Nw*fw+Ns*fs)/(Nw*fw+(Ns)*fs)) * benefit_ss +
+                    ((Nw*fw*Ns*fs)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * benefit_sw
+                )
+                if benefit < 0:
+                    print('a')
+
+                cost = (
+                    ((Nw*fw*(Nw)*fw)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * cost_ww +
+                    ((Ns*fs*(Ns)*fs)/(Nw*fw+Ns*fs)/(Nw*fw+(Ns)*fs)) * cost_ss +
+                    ((Nw*fw*Ns*fs)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * cost_sw
+                )
 
                 if benefit > M:
                     WCD[i,j,k,0] = benefit/N

@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
 
-file = 'results/h4/cl/res_4strats_M0_f0_baseline'
+file = './2leaders/res_4strats_M0_f0'
 data = np.load(file + '.npy')
 
 nr = 2
@@ -32,43 +32,14 @@ for idr, r in enumerate(rv):
     j = idr % nc
     ax=axs[i,j]
 
-    res = np.zeros((pSv.shape[0]))
-    for strat in range(4):
-        for idps, pS in enumerate(pSv):
-            pF = np.zeros((2,2))
-            stratW = strat%2
-            stratS = strat//2
-
-            pW = 1 - pS
-            Nw = N * pW
-            Ns = N * pS
-
-            Nwc = pW * (N * stratW)
-            Nwd = (N * pW) - Nwc
-            Nsc = pS * (N * stratS)
-            Nsd = (N * pS) - Nsc
-            Nc = Nwc + Nsc
-            Nd = Nwd + Nsd
-
-            cl = (Nc*eps1 + Nd*eps) / N
-
-            res[idps] += cl * data[idr, 0, idps, strat]
-
-    ax.plot(res, label='No Leader', color='gold')
-
     for iddl, deltaL in enumerate(deltaLv):
-        deltaF = 8
-        ss = 1/(1+np.exp(-deltaL))
-        sw=1-ss
+        deltaF = deltaL
+        fs = 1/(1+np.exp(-deltaL))
+        fw=1-fs
         res = np.zeros((pSv.shape[0]))
         for strat in range(4):
             for idps, pS in enumerate(pSv):
                 pF = np.zeros((2,2))
-                # pF[0,0] = 1/(1+np.exp(-betaF*(f+deltaF)))
-                # pF[1,1] = 1/(1+np.exp(-betaF*(f-deltaF)))
-                # pF[0,1] = 1/(1+np.exp(-betaF*(f+2*deltaF)))
-                # pF[1,0] = 1/(1+np.exp(-betaF*(f-2*deltaF)))
-
                 pF[0,0] = 1/(1+np.exp(-betaF*(f)))
                 pF[1,1] = 1/(1+np.exp(-betaF*(f)))
                 pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
@@ -86,50 +57,123 @@ for idr, r in enumerate(rv):
                 Nsc = pS * (N * stratS)
                 Nsd = (N * pS) - Nsc
 
-                coops_w = 0
-                coops_s = 0
+                benefit_ss = 0
+                benefit_ww = 0
+                benefit_sw = 0
 
                 if Nw > 0:
-                    coops_w = (
-                        (Nwc/Nw)*( # leader is a cooperator
-                            eps1 + 
-                            (1-pF[0,0])*((Nwc-1)*eps1 + Nwd*eps)+
+                    benefit_ww = (
+                        ((Nwc/Nw)*((Nwc)/(Nw)))*( # both leaders are cooperators
+                            eps1*2 + 
+                            (1-pF[0,0])*((Nwc-2)*eps1 + Nwd*eps)+
                             (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
-                        ) + (Nwd/Nw)*( # leader is a defector
-                            eps + 
-                            (1-pF[0,0])*(Nwc*eps1 + (Nwd-1)*eps)+
+                            pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
+                        ) + ((Nwd/Nw)*((Nwd)/(Nw)))*( # both leaders are defectors
+                            eps*2 + 
+                            (1-pF[0,0])*(Nwc*eps1 + (Nwd-2)*eps)+
                             (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-1)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
+                            pF[0,0]*(Nw-2)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
+                        ) + ((Nwc/Nw)*(Nwd/(Nw)))*( # one cooperator one defector
+                            eps1+eps +
+                            (1-pF[0,0])*((Nwc)*eps1 + (Nwd)*eps)+
+                            (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
+                            (1/2)*(pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)) + # choose cooperating leader
+                            (1/2)*(pF[0,0]*(Nw-2)*(2*eps*eps1)+pF[1,0]*Ns*(2*eps*eps1)) # choose defecting leader
                         )
                     )
 
                 if Ns > 0:
-                    coops_s = (
-                        (Nsc/Ns)*( # leader is a cooperator
-                            eps1 + 
+                    benefit_ss = (
+                        ((Nsc/Ns)*((Nsc)/(Ns)))*( # both leaders are cooperators
+                            eps1*2 + 
                             (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*((Nsc-1)*eps1 + Nsd*eps)+
-                            pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)
-                        ) + (Nsd/Ns)*( # leader is a defector
-                            eps + 
+                            (1-pF[1,1])*((Nsc-2)*eps1 + Nsd*eps)+
+                            pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)
+                        ) + ((Nsd/Ns)*((Nsd)/(Ns)))*( # both leaders are defectors
+                            eps*2 + 
                             (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*(Nsc*eps1 + (Nsd-1)*eps)+
-                            pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-1)*(2*eps*eps1)
+                            (1-pF[1,1])*(Nsc*eps1 + (Nsd-2)*eps)+
+                            pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-2)*(2*eps*eps1)
+                        ) + ((Nsc/Ns)*(Nsd/(Ns)))*( # one cooperator one defector
+                            eps1+eps +
+                            (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
+                            (1-pF[1,1])*((Nsc)*eps1 + (Nsd)*eps)+
+                            (1/2)*(pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)) + # choose cooperating leader
+                            (1/2)*(pF[0,1]*Nw*(2*eps*eps1)+pF[1,1]*(Ns-2)*(2*eps*eps1)) # choose defecting leader
                         )
                     )
 
-                total_s = ss * Ns
-                total_w = sw * Nw
-                pl = 1 / (1+np.exp(-deltaL*pS))
+                if Ns > 0 and Nw > 0:
+                    benefit_sw = (
+                        ((Nsc/Ns)*(Nwc/Nw))*( # both leaders are cooperators
+                            eps1*2 +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,0])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,0]*(Nw)*(eps1**2+eps**2)+pF[1,0]*(Ns)*(eps1**2+eps**2)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,1])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,1]*(Nw)*(eps1**2+eps**2)+pF[1,1]*(Ns)*(eps1**2+eps**2)                                    
+                                )
+                            )
+                        )+
+                        ((Nsd/Ns)*(Nwd/Nw))*( # both leaders are defectors
+                            eps*2 +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,0])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,1])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,1]*(Nw)*(2*eps1*eps)+pF[1,1]*(Ns)*(2*eps1*eps)                                    
+                                )
+                            )
+                        )+
+                        ((Nsd/Ns)*(Nwc/Nw))*( # one weak cooperator one strong defector
+                            eps1+eps +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,0])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,0]*(Nw)*(eps1**2+eps**2)+pF[1,0]*(Ns)*(eps1**2+eps**2)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*((Nwc)*eps1+Nwd*eps)+
+                                    (1-pF[1,1])*(Nsc*eps1+(Nsd)*eps)+
+                                    pF[0,1]*(Nw)*(2*eps1*eps)+pF[1,1]*(Ns)*(2*eps1*eps)                                    
+                                )
+                            )
+                        )+
+                        ((Nsc/Ns)*(Nwd/Nw))*( # one strong cooperator one weak defector
+                            eps1+eps +
+                            (
+                                (fw/(fw+fs))*(
+                                    (1-pF[0,0])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,0])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
+                                ) + 
+                                (fs/(fw+fs))*(
+                                    (1-pF[0,1])*(Nwc*eps1+(Nwd)*eps)+
+                                    (1-pF[1,1])*((Nsc)*eps1+Nsd*eps)+
+                                    pF[0,1]*(Nw)*(eps1**2+eps**2)+pF[1,1]*(Ns)*(eps1**2+eps**2)                                    
+                                )
+                            )
+                        )                                                                                    
+                    )                
 
-                cl_nol = (Nwc + Nsc) / N
-
-                cl = (((Nw*sw)/(Nw*sw+Ns*ss))*coops_w + ((Ns*ss)/(Nw*sw+Ns*ss))*coops_s) / N
-                # cl_l = (((Nw*sw)/(Nw*sw+Ns*ss))*coops_w+((Ns*ss)/(Nw*sw+Ns*ss))*coops_s) / N
-                # cl = pl*cl_l + (1-pl)*cl_nol
-
-                res[idps] += cl * data[idr, iddl+1, idps, strat]
+                benefit = (
+                    ((Nw*fw*(Nw)*fw)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * benefit_ww +
+                    ((Ns*fs*(Ns)*fs)/(Nw*fw+Ns*fs)/(Nw*fw+(Ns)*fs)) * benefit_ss +
+                    ((Nw*fw*Ns*fs)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * benefit_sw
+                )/N
+                
+                res[idps] += benefit * data[idr, iddl, idps, strat]
             
 
         ax.set_xticks(np.linspace(0, pSv.shape[0]-1, nticksX))
@@ -143,13 +187,11 @@ for idr, r in enumerate(rv):
         if j==0: ax.set_ylabel(r'cooperation level', fontsize=fntsize)
         ax.text(20,1.06,"$r$=%d" % rv[idr], size=13)
 
-legend_elements = [Line2D([], [], marker='s', color='gold', label='No Leader',
-                           markerfacecolor='gold', markersize=10, linestyle='None')]
-legend_elements += [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
+legend_elements = [Line2D([], [], marker='None', label='Leader: $\Delta_l=\Delta_f$', linestyle='None')]
 legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+1)), label='%d'%deltaLv[idx],
                           markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(-2.1, -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('fig.png', bbox_inches='tight', dpi=300)
+plt.savefig('./2leaders/cl_fig.png', bbox_inches='tight', dpi=300)
 
 plt.show()
