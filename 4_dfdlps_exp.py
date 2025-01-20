@@ -8,11 +8,11 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltav):
     if np.isscalar(HZ):
         H=calcH(N-1,HZ-1)
 
-    MAT = np.zeros((2, len(deltav), len(pSv), len(rv), 4))
+    MAT = np.zeros((len(deltav), len(pSv), len(rv), 4))
 
     for idr, r in enumerate(rv):
         for iddl, deltaL in enumerate(deltav):
-            deltaF = 1
+            deltaF = deltaL
             pF=np.zeros((2,2))
             pF[0,0] = 1/(1+np.exp(-betaF*(f)))
             pF[1,1] = 1/(1+np.exp(-betaF*(f)))
@@ -24,22 +24,8 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltav):
                 SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
                 best_s = np.argmax(SD)
                 if SD[best_s] >= 0.5:
-                    MAT[0, iddl, idps, idr, best_s] = SD[best_s]
+                    MAT[iddl, idps, idr, best_s] = SD[best_s]
 
-        for iddf, deltaF in enumerate(deltav):
-            deltaL = 1
-            pF=np.zeros((2,2))
-            pF[0,0] = 1/(1+np.exp(-betaF*(f)))
-            pF[1,1] = 1/(1+np.exp(-betaF*(f)))
-            pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
-            pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
-            for idps, pS in enumerate(pSv):
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
-                print(deltaF,deltaL,pS)
-                SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
-                best_s = np.argmax(SD)
-                if SD[best_s] >= 0.5:
-                    MAT[1, iddf, idps, idr, best_s] = SD[best_s]
     return MAT
 
 def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
@@ -49,22 +35,22 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     import matplotlib.patches as mpatches
     import matplotlib
     fntsize=20
-    nr=1
-    nc=3
-    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(17,5))
+    nr=2
+    nc=5
+    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(15,5))
     f.subplots_adjust(hspace=0.4, wspace=0.2)
     k=-1
     for idx in range(len(rv)):
-        i = 0
+        i = idx // nc
         j = idx % nc
 
-        ax=axs[j]
+        ax=axs[i,j]
         k=k+1
         cmaps=['Greens','Reds','Blues','Purples']
         for strat in range(4):
             step=0.025
             levels = np.arange(0.5-step, 1., step) + step
-            h=ax.contourf(MAT[:,:,j,strat],levels,cmap=cmaps[strat], origin='lower',)
+            h=ax.contourf(MAT[:,:,idx,strat],levels,cmap=cmaps[strat], origin='lower',)
         #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
         nticksY=5
         nticksX=3
@@ -73,7 +59,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
         ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=18)
         ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=18)
         ax.set_ylim(0,MAT.shape[1]-1)
-        ax.text(22.5,50,"$r=%d$" % rv[j], size=20)
+        ax.text(22.5,50,"$r=%d$" % rv[idx], size=20)
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
         if j==0: 
             ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
@@ -86,7 +72,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     
     labels = ['ALLD', 'WCSD', 'WDSC', 'ALLC']
     patches = [mpatches.Patch(color=plt.get_cmap(cmaps[i])(0.9), label=labels[i]) for i in range(4)]
-    plt.legend(handles=patches, loc='upper center', bbox_to_anchor=(-0.7 , -0.2),
+    plt.legend(handles=patches, loc='upper center', bbox_to_anchor=(-1.9, -0.6),
           fancybox=True, shadow=False, ncol=4, fontsize=20, columnspacing=1)
     # ax.text(-12,125,"$\Delta_f=1$", size=13)
     # ax.text(-12,57,"$\Delta_l=1$", size=13)
@@ -107,7 +93,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
 
 #cb=f.colorbar(h, fraction=0.1,format='%.2f')
     #cb.set_label(label=r'$f_C$')
-    f.savefig('figures/presentation.png',bbox_inches='tight',dpi=300)
+    f.savefig('./2leaders/multi_sd.png',bbox_inches='tight',dpi=300)
     #plt.show()
     f.clf()     
     return
@@ -179,9 +165,10 @@ if __name__ == "__main__":
     deltaLv=np.linspace(0,8,num=50)
     pSv=np.linspace(0.,1.,num=50)
     rv=[5,6,7]
+    rv=np.linspace(1, 10, 10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='results/h4/ps/heterogeneous_leader_M0_f0_dfdlrps_alt'
+    labfilenpy='./2leaders/heterogeneous_leader_M0_f0_dfdlrps_alt'
     # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
     # np.save(labfilenpy,MAT)             # save matrix for heatmap
     # print('data saved to file!')
