@@ -83,13 +83,13 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
 
                 pwc = 0; pwd = 0; psc = 0; psd = 0; pwcl = 0; pwdl = 0; pscl = 0; psdl = 0; pwl = 0; psl = 0
                 if Nw > 0:
-                    pwc = Nwc / Nw
+                    pwc = Nwcnl / (Nwcnl+Nwdnl)
                     pwd = 1 - pwc
                     pwcl = Nwcl / Nwl
                     pwdl = Nwdl / Nwl
                     pwl = Nwl / Nw
                 if Ns > 0:
-                    psc = Nsc / Ns
+                    psc = Nscnl / (Nscnl+Nsdnl)
                     psd = 1 - psc
                     pscl = Nscl / Nsl
                     psdl = Nsdl / Nsl
@@ -98,6 +98,23 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                 follow_s = (pleadS * Nsl) / (pleadS * Nsl + pleadW * Nwl)
                 follow_w = (pleadW * Nwl) / (pleadS * Nsl + pleadW * Nwl)
                 p1leader = 1 - (((1 - pleadW)**Nw) * ((1 - pleadS)**Ns)) # prob that there is at least 1 leader
+
+                # benefit = (
+                #     pW*( # weak players
+                #         pleadW*((k * s1[0] + (N - k) * s2[0])*eps1 + (k * (1 - s1[0]) + (N - k)* (1 - s2[0]))*eps)+ #leaders
+                #         (1-pleadW)*( # non-leaders
+                #             p1leader*( # find at least one leader
+                #                 follow_w*( # choose a weak leader
+                #                     (1-pF[0,0])*((k * s1[2] + (N - k) * s2[2])*eps1 + (k * (1 - s1[2]) + (N - k)* (1 - s2[2]))*eps)+
+                #                     pF[0,0]
+                #                 )
+                #             )+
+                #             (1-p1leader)*(
+
+                #             )
+                #         )
+                #     )
+                # )
 
                 benefit = (
                     (Nwcl + Nscl) * eps1 + (Nwdl + Nsdl) * eps + # leaders
@@ -135,38 +152,34 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
 
                 cost = (
                     pW * ( # focus player is weak
-                        pwl * aeps(s1[0], eps) + # focus playes is a leader
-                        (1 - pwl) * ( # is not a leader
-                            p1leader * (
-                                follow_w * ( # choose weak leader
-                                    (1 - pF[0, 0]) * aeps(s1[2], eps) +
-                                    pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
-                                ) + 
-                                follow_s * (
-                                    (1 - pF[0, 1]) * aeps(s1[2], eps) +
-                                    pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
-                                )
-                            ) + (1 - p1leader) * (
-                                aeps(s1[0], eps)
+                        p1leader*(
+                            pwl * aeps(s1[0], eps) + # focus playes is a leader
+                            (1 - pwl) * ( # is not a leader
+                                    follow_w * ( # choose weak leader
+                                        (1 - pF[0, 0]) * aeps(s1[2], eps) +
+                                        pF[0, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
+                                    ) + 
+                                    follow_s * (
+                                        (1 - pF[0, 1]) * aeps(s1[2], eps) +
+                                        pF[0, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
+                                    )
                             )
-                        )
+                        ) + (1 - p1leader) * aeps(s1[2], eps)
                     ) +
                     pS * ( # focus player is strong
-                        psl * aeps(s1[1], eps) + # focus playes is a leader
-                        (1 - psl) * ( # is not a leader
-                            p1leader * (
-                                follow_w * ( # choose weak leader
-                                    (1 - pF[1, 0]) * aeps(s1[3], eps) +
-                                    pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
-                                ) + 
-                                follow_s * (
-                                    (1 - pF[1, 1]) * aeps(s1[3], eps) +
-                                    pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
-                                )
-                            ) + (1 - p1leader) * (
-                                aeps(s1[1], eps)
+                        p1leader *(
+                            psl * aeps(s1[1], eps) + # focus playes is a leader
+                            (1 - psl) * ( # is not a leader
+                                    follow_w * ( # choose weak leader
+                                        (1 - pF[1, 0]) * aeps(s1[3], eps) +
+                                        pF[1, 0] * (pwcl * (eps1**2 + eps**2) + pwdl * (2*eps1*eps))
+                                    ) + 
+                                    follow_s * (
+                                        (1 - pF[1, 1]) * aeps(s1[3], eps) +
+                                        pF[1, 1] * (pscl * (eps1**2 + eps**2) + psdl * (2*eps1*eps))                                
+                                    )
                             )
-                        )
+                        ) + (1 - p1leader) * (aeps(s1[3], eps))
                     )
                 )                
 

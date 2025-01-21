@@ -31,41 +31,79 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label,strategies):
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
     fntsize=13
-    nr=int(np.sqrt(len(strategies)))
-    nc=nr
-    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(10,15))
+    nr=5
+    nc=5
+    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(15,15))
     f.subplots_adjust(hspace=0.4, wspace=0.2)
-    labels = ["[0,0,*,*]","[1,0,*,*]","[0,1,*,*]","[1,1,*,*]"]
-    # labels = ["[0,0,0,0]","[1,0,0,0]","[0,1,0,0]","[1,1,0,0]","[0,0,1,0]","[1,0,1,0]","[0,1,1,0]","[1,1,1,0]",
-    #           "[0,0,0,1]","[1,0,0,1]","[0,1,0,1]","[1,1,0,1]","[0,0,1,1]","[1,0,1,1]","[0,1,1,1]","[1,1,1,1]"]
+    # labels = ["[0,0,*,*]","[1,0,*,*]","[0,1,*,*]","[1,1,*,*]"]
+    labels = ["[0,0,0,0]","[1,0,0,0]","[0,1,0,0]","[1,1,0,0]","[0,0,1,0]","[1,0,1,0]","[0,1,1,0]","[1,1,1,0]",
+              "[0,0,0,1]","[1,0,0,1]","[0,1,0,1]","[1,1,0,1]","[0,0,1,1]","[1,0,1,1]","[0,1,1,1]","[1,1,1,1]"]
+    cmaps=['Greens','Reds','Blues','Purples']
+    step=0.025
+    levels = np.arange(0, 1., step) + step
+    nticksY=5
+    nticksX=3    
+
     for ids, strat in enumerate(strategies):
-        i = ids // nc
-        j = ids % nc
+        i = ids // 4
+        j = ids % 4
 
         ax=axs[i,j]
-        cmaps=['Greens','Reds','Blues','Purples']
-        step=0.025
-        levels = np.arange(0, 1., step) + step
         h=ax.contourf(np.sum(MAT[:,:,r-1,strat],axis=-1),levels,cmap=cmaps[ids%4], origin='lower',)
         #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
-        nticksY=5
-        nticksX=3
         ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
         ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
         ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=10)
         ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=10)
         ax.text(17.5,50,labels[ids], size=fntsize)
-        if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
+        #if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
         if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
 
         # # insert markers for invasion graphs
         # points_x = [MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5]
         # points_y = [0.7, MAT.shape[0] // 8 - 0.5, MAT.shape[0] // 4 - 0.5]
         # ax.scatter(points_x, points_y, color='goldenrod', marker='o')
+
+    strategies = np.array([
+        [0,4,8,12],
+        [1,5,9,13],
+        [2,6,10,14],
+        [3,7,11,15]])    
+    labels = ["[0,0,*,*]","[1,0,*,*]","[0,1,*,*]","[1,1,*,*]"]
     
-    plt.text(-10, 130, f"r={r}",size=fntsize)
-    f.savefig(f'4bitstratsnewnew/aggregates_strategies_r{r}_lead.png',bbox_inches='tight',dpi=300)
-    plt.show()
+    for ids, strat in enumerate(strategies):
+        ax = axs[4, ids]    
+        h=ax.contourf(np.sum(MAT[:,:,r-1,strat],axis=-1),levels,cmap=cmaps[ids%4], origin='lower',)
+        ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
+        ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
+        ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=10)
+        ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=10)
+        ax.text(17.5,50,labels[ids], size=fntsize)
+        ax.set_xlabel(r'$p_s$', fontsize=fntsize)
+        if ids == 0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)    
+
+    strategies = np.array([
+        [0,1,2,3],
+        [4,5,6,7],
+        [8,9,10,11],
+        [12,13,14,15]])
+    labels = ["[*,*,0,0]","[*,*,1,0]","[*,*,0,1]","[*,*,1,1]"]
+    
+    for ids, strat in enumerate(strategies):
+        ax = axs[ids, 4]    
+        h=ax.contourf(np.sum(MAT[:,:,r-1,strat],axis=-1),levels,cmap=cmaps[ids%4], origin='lower',)
+        ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
+        ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
+        ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=10)
+        ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=10)
+        ax.text(17.5,50,labels[ids], size=fntsize)
+        # if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
+        # if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)                
+    
+    ax.text(-99, 275, f"r={r}",size=18)
+    f.delaxes(axs[nr-1, nc-1])
+    f.savefig(f'4bitstrats/5x5_aggregates_strategies_r{r}_lead.png',bbox_inches='tight',dpi=300)
+    #plt.show()
     return
 
 def plotsingleheat(MAT,fv,rv,label):
@@ -137,10 +175,10 @@ if __name__ == "__main__":
     rv=np.linspace(1,10,num=10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='results/multileader/ps/multi_leader_M0_f0_dfdlrps_sstrat'
-    # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
-    # np.save(labfilenpy,MAT)             # save matrix for heatmap
-    # print('data saved to file!')
+    labfilenpy='./4bitstrats/multi_leader_M0_f0_dfdlrps_sstrat'
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
+    np.save(labfilenpy,MAT)             # save matrix for heatmap
+    print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
     # strategies = np.array([
@@ -152,7 +190,7 @@ if __name__ == "__main__":
         [1,5,9,13],
         [2,6,10,14],
         [3,7,11,15]])    
-    # strategies = np.array([[i,] for i in range(16)])
-    plotCOOPheat(MAT,deltaLv,pSv,10,labfilenpy,strategies)      # plot heatmap
+    strategies = np.array([[i,] for i in range(16)])
+    plotCOOPheat(MAT,deltaLv,pSv,1,labfilenpy,strategies)      # plot heatmap
     # plotsingleheat(MAT,fv,rv,labfilenpy)
 #####################################################

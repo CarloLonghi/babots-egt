@@ -5,7 +5,7 @@ from matplotlib.lines import Line2D
 def gaussian(x, mu, sig):
     return np.exp(-((x - mu) ** 2) / (2 * (sig ** 2))) / (np.sqrt(2 * np.pi) * sig)
 
-file = 'results/multileader/cl/res_4strats_M0_f0'
+file = './4bitstrats/res_4strats_M0_f0'
 data = np.load(file + '.npy')
 
 nr = 2
@@ -65,14 +65,19 @@ for idr, r in enumerate(rv):
                 Nwl = Nwcl + Nwdl
                 Nsl = Nscl + Nsdl
 
+                Nwcnl = pW * ((1 - pleadW) * (N * s[2]))
+                Nscnl = pS * ((1 - pleadS) * (N * s[3]))
+                Nwdnl = pW * ((1 - pleadW) * (N * (1 - s[2])))
+                Nsdnl = pS * ((1 - pleadS) * (N * (1 - s[3])))
+
                 pwc = 0; pwd = 0; psc = 0; psd = 0; pwcl = 0; pwdl = 0; pscl = 0; psdl = 0
                 if Nw > 0:
-                    pwc = Nwc / Nw
+                    pwc = Nwcnl / (Nwcnl+Nwdnl)
                     pwd = 1 - pwc
                     pwcl = Nwcl / Nwl
                     pwdl = Nwdl / Nwl
                 if Ns > 0:
-                    psc = Nsc / Ns
+                    psc = Nscnl / (Nscnl+Nsdnl)
                     psd = 1 - psc
                     pscl = Nscl / Nsl
                     psdl = Nsdl / Nsl
@@ -137,6 +142,6 @@ legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv))),
                           markerfacecolor=cmap((idx)/(len(deltaLv))), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(-2., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig_16stratnew.png', bbox_inches='tight', dpi=300)
+plt.savefig('./4bitstrats/multileader_fig_16strat.png', bbox_inches='tight', dpi=300)
 
 plt.show()
