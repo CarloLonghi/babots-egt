@@ -108,7 +108,7 @@ if __name__ == "__main__":
     pSv=np.linspace(0,1.,num=50)
     rv=np.linspace(1,10,num=10)
     
-    labfilenpy='results/multileader/cl/res_4strats_M0_f0'
+    labfilenpy='./multileader/res_4strats_M0_f0_N9'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,deltaLv,f,betaF)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')

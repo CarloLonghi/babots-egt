@@ -34,9 +34,9 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     import matplotlib.patches as mpatches
     import matplotlib
     fntsize=20
-    nr=5
-    nc=2
-    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(6,17))
+    nr=2
+    nc=5
+    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(14,5))
     f.subplots_adjust(hspace=0.4, wspace=0.2)
     k=-1
     for idx in range(len(rv)):
@@ -71,7 +71,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     
     labels = ['ALLD', 'WCSD', 'WDSC', 'ALLC']
     patches = [mpatches.Patch(color=plt.get_cmap(cmaps[i])(0.9), label=labels[i]) for i in range(4)]
-    plt.legend(handles=patches, loc='upper center', bbox_to_anchor=(-0.7 , -0.2),
+    plt.legend(handles=patches, loc='upper center', bbox_to_anchor=(-1.9 , -0.5),
           fancybox=True, shadow=False, ncol=4, fontsize=20, columnspacing=1)
     # ax.text(-12,125,"$\Delta_f=1$", size=13)
     # ax.text(-12,57,"$\Delta_l=1$", size=13)
@@ -92,7 +92,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
 
 #cb=f.colorbar(h, fraction=0.1,format='%.2f')
     #cb.set_label(label=r'$f_C$')
-    f.savefig('multi_sd.png',bbox_inches='tight',dpi=300)
+    f.savefig('./multileader/multi_sd_N9.png',bbox_inches='tight',dpi=300)
     #plt.show()
     f.clf()     
     return
@@ -163,11 +163,10 @@ if __name__ == "__main__":
 
     deltaLv=np.linspace(0,8,num=50)
     pSv=np.linspace(0.,1.,num=50)
-    rv=[5,6,7]
     rv=np.linspace(1,10,num=10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='results/multileader/ps/multi_leader_M0_f0_dfdlrps'
+    labfilenpy='./multileader/multi_leader_M0_N9_f0_dfdlrps'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')

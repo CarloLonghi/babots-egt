@@ -5,7 +5,7 @@ from matplotlib.lines import Line2D
 def gaussian(x, mu, sig):
     return np.exp(-((x - mu) ** 2) / (2 * (sig ** 2))) / (np.sqrt(2 * np.pi) * sig)
 
-file = 'results/multileader/cl/res_4strats_M0_f0'
+file = './multileader/res_4strats_M0_f0_N9'
 data = np.load(file + '.npy')
 
 nr = 2
@@ -141,6 +141,6 @@ legend_elements += [Line2D([], [], marker='s', color=cmap((idx+1)/(len(deltaLv)+
                           markerfacecolor=cmap((idx+1)/(len(deltaLv)+1)), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(-2., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('multileader_fig_newnew.png', bbox_inches='tight', dpi=300)
+plt.savefig('./multileader/coop_level_N9.png', bbox_inches='tight', dpi=300)
 
 plt.show()
