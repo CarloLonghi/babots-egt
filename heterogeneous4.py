@@ -9,6 +9,7 @@ Created on Thu Mar  7 10:40:35 2019
 import evoEGT as evo
 
 import numpy as np
+import math
 
 
 def calcH(N,Z):   
@@ -76,19 +77,19 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
 
                 if Nw > 0:
                     benefit_ww = (
-                        ((Nwc/Nw)*((Nwc)/(Nw)))*( # both leaders are cooperators
+                        ((Nwc/Nw)*((Nwc-1)/(Nw-1)))*( # both leaders are cooperators
                             eps1*2 + 
                             (1-pF[0,0])*((Nwc-2)*eps1 + Nwd*eps)+
                             (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
                             pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
-                        ) + ((Nwd/Nw)*((Nwd)/(Nw)))*( # both leaders are defectors
+                        ) + ((Nwd/Nw)*((Nwd-1)/(Nw-1)))*( # both leaders are defectors
                             eps*2 + 
                             (1-pF[0,0])*(Nwc*eps1 + (Nwd-2)*eps)+
                             (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
                             pF[0,0]*(Nw-2)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
-                        ) + ((Nwc/Nw)*(Nwd/(Nw)))*( # one cooperator one defector
+                        ) + ((Nwc/Nw)*(Nwd/(Nw-1)))*2*( # one cooperator one defector
                             eps1+eps +
-                            (1-pF[0,0])*((Nwc)*eps1 + (Nwd)*eps)+
+                            (1-pF[0,0])*((Nwc-1)*eps1 + (Nwd-1)*eps)+
                             (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
                             (1/2)*(pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)) + # choose cooperating leader
                             (1/2)*(pF[0,0]*(Nw-2)*(2*eps*eps1)+pF[1,0]*Ns*(2*eps*eps1)) # choose defecting leader
@@ -100,34 +101,34 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         (1-(2/Nw))*(
                             (1-pF[0,0])*aeps(s1[0],eps)+
                             pF[0,0]*(
-                                ((Nwc/Nw)*((Nwc)/(Nw)))*(eps1**2+eps**2) +
-                                ((Nwd/Nw)*((Nwd)/(Nw)))*(2*eps1*eps) +
-                                ((Nwc/Nw)*(Nwd/(Nw)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps)))
+                                ((Nwc/Nw)*((Nwc-1)/(Nw-1)))*(eps1**2+eps**2) +
+                                ((Nwd/Nw)*((Nwd-1)/(Nw-1)))*(2*eps1*eps) +
+                                ((Nwc/Nw)*(Nwd/(Nw-1)))*2*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps)))
                         )
                         ) + pS*( # focus player is strong
                             (1-pF[1,0])*aeps(s1[1],eps)+
                             pF[1,0]*(
-                                ((Nwc/Nw)*((Nwc)/(Nw)))*(eps1**2+eps**2) +
-                                ((Nwd/Nw)*((Nwd)/(Nw)))*(2*eps1*eps) +
-                                ((Nwc/Nw)*(Nwd/(Nw)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps)))                            
+                                ((Nwc/Nw)*((Nwc-1)/(Nw-1)))*(eps1**2+eps**2) +
+                                ((Nwd/Nw)*((Nwd-1)/(Nw-1)))*(2*eps1*eps) +
+                                ((Nwc/Nw)*(Nwd/(Nw-1)))*2*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps)))                            
                         )  
 
                 if Ns > 0:
                     benefit_ss = (
-                        ((Nsc/Ns)*((Nsc)/(Ns)))*( # both leaders are cooperators
+                        ((Nsc/Ns)*((Nsc-1)/(Ns-1)))*( # both leaders are cooperators
                             eps1*2 + 
                             (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
                             (1-pF[1,1])*((Nsc-2)*eps1 + Nsd*eps)+
                             pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)
-                        ) + ((Nsd/Ns)*((Nsd)/(Ns)))*( # both leaders are defectors
+                        ) + ((Nsd/Ns)*((Nsd-1)/(Ns-1)))*( # both leaders are defectors
                             eps*2 + 
                             (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
                             (1-pF[1,1])*(Nsc*eps1 + (Nsd-2)*eps)+
                             pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-2)*(2*eps*eps1)
-                        ) + ((Nsc/Ns)*(Nsd/(Ns)))*( # one cooperator one defector
+                        ) + ((Nsc/Ns)*(Nsd/(Ns-1)))*2*( # one cooperator one defector
                             eps1+eps +
                             (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*((Nsc)*eps1 + (Nsd)*eps)+
+                            (1-pF[1,1])*((Nsc-1)*eps1 + (Nsd-1)*eps)+
                             (1/2)*(pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)) + # choose cooperating leader
                             (1/2)*(pF[0,1]*Nw*(2*eps*eps1)+pF[1,1]*(Ns-2)*(2*eps*eps1)) # choose defecting leader
                         )
@@ -136,18 +137,18 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                     cost_ss = pW*( # focus player is weak
                         (1-pF[0,1])*aeps(s1[0],eps)+
                         pF[0,1]*(
-                            ((Nsc/Ns)*((Nsc)/(Ns)))*(eps1**2+eps**2) +
-                            ((Nsd/Ns)*((Nsd)/(Ns)))*(2*eps1*eps) +
-                            ((Nsc/Ns)*(Nsd/(Ns)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps))                           
+                            ((Nsc/Ns)*((Nsc-1)/(Ns-1)))*(eps1**2+eps**2) +
+                            ((Nsd/Ns)*((Nsd-1)/(Ns-1)))*(2*eps1*eps) +
+                            ((Nsc/Ns)*(Nsd/(Ns-1)))*2*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps))                           
                         )
                     ) + pS*( # focus player is strong
                         (2/Ns)*aeps(s1[1],eps)+
                         (1-(2/Ns))*(
                             (1-pF[1,1])*aeps(s1[1],eps)+
                             pF[1,1]*(
-                            ((Nsc/Ns)*((Nsc)/(Ns)))*(eps1**2+eps**2) +
-                            ((Nsd/Ns)*((Nsd)/(Ns)))*(2*eps1*eps) +
-                            ((Nsc/Ns)*(Nsd/(Ns)))*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps))                                
+                            ((Nsc/Ns)*((Nsc-1)/(Ns-1)))*(eps1**2+eps**2) +
+                            ((Nsd/Ns)*((Nsd-1)/(Ns-1)))*(2*eps1*eps) +
+                            ((Nsc/Ns)*(Nsd/(Ns-1)))*2*((1/2)*(eps1**2+eps**2)+(1/2)*(2*eps1*eps))                                
                             )                        
                         )
                     )      
@@ -158,14 +159,14 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                             eps1*2 +
                             (
                                 (fw/(fw+fs))*(
-                                    (1-pF[0,0])*((Nwc)*eps1+Nwd*eps)+
-                                    (1-pF[1,0])*((Nsc)*eps1+Nsd*eps)+
-                                    pF[0,0]*(Nw)*(eps1**2+eps**2)+pF[1,0]*(Ns)*(eps1**2+eps**2)
+                                    (1-pF[0,0])*((Nwc-1)*eps1+Nwd*eps)+
+                                    (1-pF[1,0])*((Nsc-1)*eps1+Nsd*eps)+
+                                    pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*(Ns-1)*(eps1**2+eps**2)
                                 ) + 
                                 (fs/(fw+fs))*(
-                                    (1-pF[0,1])*((Nwc)*eps1+Nwd*eps)+
-                                    (1-pF[1,1])*((Nsc)*eps1+Nsd*eps)+
-                                    pF[0,1]*(Nw)*(eps1**2+eps**2)+pF[1,1]*(Ns)*(eps1**2+eps**2)                                    
+                                    (1-pF[0,1])*((Nwc-1)*eps1+Nwd*eps)+
+                                    (1-pF[1,1])*((Nsc-1)*eps1+Nsd*eps)+
+                                    pF[0,1]*(Nw-1)*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)                                    
                                 )
                             )
                         )+
@@ -173,14 +174,14 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                             eps*2 +
                             (
                                 (fw/(fw+fs))*(
-                                    (1-pF[0,0])*(Nwc*eps1+(Nwd)*eps)+
-                                    (1-pF[1,0])*(Nsc*eps1+(Nsd)*eps)+
-                                    pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
+                                    (1-pF[0,0])*(Nwc*eps1+(Nwd-1)*eps)+
+                                    (1-pF[1,0])*(Nsc*eps1+(Nsd-1)*eps)+
+                                    pF[0,0]*(Nw-1)*(2*eps1*eps)+pF[1,0]*(Ns-1)*(2*eps1*eps)
                                 ) + 
                                 (fs/(fw+fs))*(
-                                    (1-pF[0,1])*(Nwc*eps1+(Nwd)*eps)+
-                                    (1-pF[1,1])*(Nsc*eps1+(Nsd)*eps)+
-                                    pF[0,1]*(Nw)*(2*eps1*eps)+pF[1,1]*(Ns)*(2*eps1*eps)                                    
+                                    (1-pF[0,1])*(Nwc*eps1+(Nwd-1)*eps)+
+                                    (1-pF[1,1])*(Nsc*eps1+(Nsd-1)*eps)+
+                                    pF[0,1]*(Nw-1)*(2*eps1*eps)+pF[1,1]*(Ns-1)*(2*eps1*eps)                                    
                                 )
                             )
                         )+
@@ -188,14 +189,14 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                             eps1+eps +
                             (
                                 (fw/(fw+fs))*(
-                                    (1-pF[0,0])*((Nwc)*eps1+Nwd*eps)+
-                                    (1-pF[1,0])*(Nsc*eps1+(Nsd)*eps)+
-                                    pF[0,0]*(Nw)*(eps1**2+eps**2)+pF[1,0]*(Ns)*(eps1**2+eps**2)
+                                    (1-pF[0,0])*((Nwc-1)*eps1+Nwd*eps)+
+                                    (1-pF[1,0])*(Nsc*eps1+(Nsd-1)*eps)+
+                                    pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*(Ns-1)*(eps1**2+eps**2)
                                 ) + 
                                 (fs/(fw+fs))*(
-                                    (1-pF[0,1])*((Nwc)*eps1+Nwd*eps)+
-                                    (1-pF[1,1])*(Nsc*eps1+(Nsd)*eps)+
-                                    pF[0,1]*(Nw)*(2*eps1*eps)+pF[1,1]*(Ns)*(2*eps1*eps)                                    
+                                    (1-pF[0,1])*((Nwc-1)*eps1+Nwd*eps)+
+                                    (1-pF[1,1])*(Nsc*eps1+(Nsd-1)*eps)+
+                                    pF[0,1]*(Nw-1)*(2*eps1*eps)+pF[1,1]*(Ns-1)*(2*eps1*eps)                                    
                                 )
                             )
                         )+
@@ -203,14 +204,14 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                             eps1+eps +
                             (
                                 (fw/(fw+fs))*(
-                                    (1-pF[0,0])*(Nwc*eps1+(Nwd)*eps)+
-                                    (1-pF[1,0])*((Nsc)*eps1+Nsd*eps)+
+                                    (1-pF[0,0])*(Nwc*eps1+(Nwd-1)*eps)+
+                                    (1-pF[1,0])*((Nsc-1)*eps1+Nsd*eps)+
                                     pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
                                 ) + 
                                 (fs/(fw+fs))*(
-                                    (1-pF[0,1])*(Nwc*eps1+(Nwd)*eps)+
-                                    (1-pF[1,1])*((Nsc)*eps1+Nsd*eps)+
-                                    pF[0,1]*(Nw)*(eps1**2+eps**2)+pF[1,1]*(Ns)*(eps1**2+eps**2)                                    
+                                    (1-pF[0,1])*(Nwc*eps1+(Nwd-1)*eps)+
+                                    (1-pF[1,1])*((Nsc-1)*eps1+Nsd*eps)+
+                                    pF[0,1]*(Nw-1)*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)                                    
                                 )
                             )
                         )                                                                                    
@@ -243,18 +244,52 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         )   
 
                 benefit = (
-                    ((Nw*fw*(Nw)*fw)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * benefit_ww +
-                    ((Ns*fs*(Ns)*fs)/(Nw*fw+Ns*fs)/(Nw*fw+(Ns)*fs)) * benefit_ss +
-                    ((Nw*fw*Ns*fs)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * benefit_sw
+                    (pW**N)*benefit_ww + # everyone is weak
+                    (pS**N)*benefit_ss + # everyone is strong
+                    ((pW**(N-1)*pS*N))*( # one strong everyone else weak
+                        (((N-1)*fw)/((N-1)*fw+fs)*((N-2)*fw)/((N-2)*fw+fs))*benefit_ww +
+                        (((N-1)*fw)/((N-1)*fw+fs)*(fs)/((N-2)*fw+fs))*benefit_sw+
+                        ((fs)/((N-1)*fw+fs)*((N-1)*fw)/((N-1)*fw))*benefit_sw
+                    )+
+                    ((pS**(N-1)*pW*N))*( # one weak everyone else strong
+                        (((N-1)*fs)/((N-1)*fs+fw)*((N-2)*fs)/((N-2)*fs+fw))*benefit_ss +
+                        (((N-1)*fs)/((N-1)*fs+fw)*(fw)/((N-2)*fs+fw))*benefit_sw+
+                        ((fw)/((N-1)*fs+fw)*((N-1)*fs)/((N-1)*fs))*benefit_sw
+                    )
                 )
-                if benefit < 0:
-                    print('a')
+
+                for nums in range(2, N-1):
+                    numw = N - nums
+                    benefit += (pW**numw * pS**nums)*(math.factorial(N)/(math.factorial(nums)*math.factorial(N-nums)))*(
+                        ((numw*fw)/(numw*fw+nums*fs)*((numw-1)*fw)/((numw-1)*fw+nums*fs))*benefit_ww+
+                        ((nums*fs)/(numw*fw+nums*fs)*((nums-1)*fs)/(numw*fw+(nums-1)*fs))*benefit_ss+
+                        ((numw*fw)/(numw*fw+nums*fs)*(nums*fs)/((numw-1)*fw+nums*fs))*benefit_sw+
+                        ((nums*fs)/(numw*fs+nums*fs)*(numw*fw)/(numw*fw+(nums-1)*fs))*benefit_sw
+                    )
 
                 cost = (
-                    ((Nw*fw*(Nw)*fw)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * cost_ww +
-                    ((Ns*fs*(Ns)*fs)/(Nw*fw+Ns*fs)/(Nw*fw+(Ns)*fs)) * cost_ss +
-                    ((Nw*fw*Ns*fs)/(Nw*fw+Ns*fs)/((Nw)*fw+Ns*fs)) * cost_sw
+                    (pW**N)*cost_ww + # everyone is weak
+                    (pS**N)*cost_ss + # everyone is strong
+                    ((pW**(N-1)*pS*N))*( # one strong everyone else weak
+                        (((N-1)*fw)/((N-1)*fw+fs)*((N-2)*fw)/((N-2)*fw+fs))*cost_ww +
+                        (((N-1)*fw)/((N-1)*fw+fs)*(fs)/((N-2)*fw+fs))*cost_sw+
+                        ((fs)/((N-1)*fw+fs)*((N-1)*fw)/((N-1)*fw))*cost_sw
+                    )+
+                    ((pS**(N-1)*pW*N))*( # one weak everyone else strong
+                        (((N-1)*fs)/((N-1)*fs+fw)*((N-2)*fs)/((N-2)*fs+fw))*cost_ss +
+                        (((N-1)*fs)/((N-1)*fs+fw)*(fw)/((N-2)*fs+fw))*cost_sw+
+                        ((fw)/((N-1)*fs+fw)*((N-1)*fs)/((N-1)*fs))*cost_sw
+                    )
                 )
+
+                for nums in range(2, N-1):
+                    numw = N - nums
+                    cost += (pW**numw * pS**nums)*(math.factorial(N)/(math.factorial(nums)*math.factorial(N-nums)))*(
+                        ((numw*fw)/(numw*fw+nums*fs)*((numw-1)*fw)/((numw-1)*fw+nums*fs))*cost_ww+
+                        ((nums*fs)/(numw*fw+nums*fs)*((nums-1)*fs)/(numw*fw+(nums-1)*fs))*cost_ss+
+                        ((numw*fw)/(numw*fw+nums*fs)*(nums*fs)/((numw-1)*fw+nums*fs))*cost_sw+
+                        ((nums*fs)/(numw*fs+nums*fs)*(numw*fw)/(numw*fw+(nums-1)*fs))*cost_sw
+                    )                
 
                 if benefit > M:
                     WCD[i,j,k,0] = benefit/N
