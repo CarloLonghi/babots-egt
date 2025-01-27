@@ -50,148 +50,170 @@ for idr, r in enumerate(rv):
                 stratS = strat//2
 
                 pW = 1 - pS
-                Nw = N * pW
-                Ns = N * pS
-
-                Nwc = pW * (N * stratW)
-                Nwd = (N * pW) - Nwc
-                Nsc = pS * (N * stratS)
-                Nsd = (N * pS) - Nsc
-
                 benefit_ss = 0
                 benefit_ww = 0
                 benefit_sw = 0
 
-                if Nw > 0:
-                    benefit_ww = (
-                        ((Nwc/Nw)*((Nwc-1)/(Nw-1)))*( # both leaders are cooperators
-                            eps1*2 + 
-                            (1-pF[0,0])*((Nwc-2)*eps1 + Nwd*eps)+
-                            (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
-                        ) + ((Nwd/Nw)*((Nwd-1)/(Nw-1)))*( # both leaders are defectors
-                            # TODO multiply by probability that there are two weak defectors???
-                            eps*2 + 
-                            (1-pF[0,0])*(Nwc*eps1 + (Nwd-2)*eps)+
-                            (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            pF[0,0]*(Nw-2)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
-                        ) + ((Nwc/Nw)*(Nwd/(Nw-1)))*2*( # one cooperator one defector
-                            eps1+eps +
-                            (1-pF[0,0])*((Nwc-1)*eps1 + (Nwd-1)*eps)+
-                            (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                            (1/2)*(pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)) + # choose cooperating leader
-                            (1/2)*(pF[0,0]*(Nw-2)*(2*eps*eps1)+pF[1,0]*Ns*(2*eps*eps1)) # choose defecting leader
+                for n1s in range(N+1):
+                    n1w = N-n1s
+                    Nw = n1w
+                    Ns = n1s
+                    Nwc = n1w*stratW
+                    Nwd = Nw-Nwc
+                    Nsc = n1s*stratS
+                    Nsd = Ns-Nsc
+
+                    prob = (pS**n1s*pW**n1w)*(math.factorial(N)/(math.factorial(n1s)*math.factorial(n1w)))
+
+                    prob_ww = 0
+                    prob_ss = 0
+                    prob_sw = 0
+                    if Nw >= 2:
+                        prob_ww = (Nw*fw)/(Nw*fw+Ns*fs)*((Nw-1)*fw)/((Nw-1)*fw+Ns*fs)
+                    if Ns >= 2:
+                        prob_ss = (Ns*fs)/(Nw*fw+Ns*fs)*((Ns-1)*fs)/((Ns-1)*fs+Nw*fw)
+                    if Nw >= 1 and Ns >= 1:
+                        prob_sw = 1 - (prob_ww + prob_ss)
+
+                    if Nwc >= 2:
+                        benefit_ww += prob*prob_ww*(
+                            ((Nwc/Nw)*((Nwc-1)/(Nw-1)))*( # both leaders are cooperators
+                                eps1*2 + 
+                                (1-pF[0,0])*((Nwc-2)*eps1 + Nwd*eps)+
+                                (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
+                                pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
+                            )
                         )
-                    )
-
-                if Ns > 0:
-                    benefit_ss = (
-                        ((Nsc/Ns)*((Nsc-1)/(Ns-1)))*( # both leaders are cooperators
-                            eps1*2 + 
-                            (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*((Nsc-2)*eps1 + Nsd*eps)+
-                            pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)
-                        ) + ((Nsd/Ns)*((Nsd-1)/(Ns-1)))*( # both leaders are defectors
-                            eps*2 + 
-                            (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*(Nsc*eps1 + (Nsd-2)*eps)+
-                            pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-2)*(2*eps*eps1)
-                        ) + ((Nsc/Ns)*(Nsd/(Ns-1)))*2*( # one cooperator one defector
-                            eps1+eps +
-                            (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                            (1-pF[1,1])*((Nsc-1)*eps1 + (Nsd-1)*eps)+
-                            (1/2)*(pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)) + # choose cooperating leader
-                            (1/2)*(pF[0,1]*Nw*(2*eps*eps1)+pF[1,1]*(Ns-2)*(2*eps*eps1)) # choose defecting leader
+                    
+                    if Nwd >= 2:
+                        benefit_ww += prob*prob_ww*(
+                            ((Nwd/Nw)*((Nwd-1)/(Nw-1)))*( # both leaders are defectors
+                                eps*2 + 
+                                (1-pF[0,0])*(Nwc*eps1 + (Nwd-2)*eps)+
+                                (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
+                                pF[0,0]*(Nw-2)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
+                            )
                         )
-                    )
 
-                if Ns > 0 and Nw > 0:
-                    benefit_sw = (
-                        ((Nsc/Ns)*(Nwc/Nw))*( # both leaders are cooperators
-                            eps1*2 +
-                            (
-                                (fw/(fw+fs))*(
-                                    (1-pF[0,0])*((Nwc-1)*eps1+Nwd*eps)+
-                                    (1-pF[1,0])*((Nsc-1)*eps1+Nsd*eps)+
-                                    pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*(Ns-1)*(eps1**2+eps**2)
-                                ) + 
-                                (fs/(fw+fs))*(
-                                    (1-pF[0,1])*((Nwc-1)*eps1+Nwd*eps)+
-                                    (1-pF[1,1])*((Nsc-1)*eps1+Nsd*eps)+
-                                    pF[0,1]*(Nw-1)*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)                                    
-                                )
+                    if Nwc >= 1 and Nwd >= 1:
+                        benefit_ww += prob*prob_ww*(
+                            ((Nwc/Nw)*(Nwd/(Nw-1)))*2*( # one cooperator one defector
+                                eps1+eps +
+                                (1-pF[0,0])*((Nwc-1)*eps1 + (Nwd-1)*eps)+
+                                (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
+                                (1/2)*(pF[0,0]*(Nw-2)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)) + # choose cooperating leader
+                                (1/2)*(pF[0,0]*(Nw-2)*(2*eps*eps1)+pF[1,0]*Ns*(2*eps*eps1)) # choose defecting leader
                             )
-                        )+
-                        ((Nsd/Ns)*(Nwd/Nw))*( # both leaders are defectors
-                            eps*2 +
-                            (
-                                (fw/(fw+fs))*(
-                                    (1-pF[0,0])*(Nwc*eps1+(Nwd-1)*eps)+
-                                    (1-pF[1,0])*(Nsc*eps1+(Nsd-1)*eps)+
-                                    pF[0,0]*(Nw-1)*(2*eps1*eps)+pF[1,0]*(Ns-1)*(2*eps1*eps)
-                                ) + 
-                                (fs/(fw+fs))*(
-                                    (1-pF[0,1])*(Nwc*eps1+(Nwd-1)*eps)+
-                                    (1-pF[1,1])*(Nsc*eps1+(Nsd-1)*eps)+
-                                    pF[0,1]*(Nw-1)*(2*eps1*eps)+pF[1,1]*(Ns-1)*(2*eps1*eps)                                    
-                                )
-                            )
-                        )+
-                        ((Nsd/Ns)*(Nwc/Nw))*( # one weak cooperator one strong defector
-                            eps1+eps +
-                            (
-                                (fw/(fw+fs))*(
-                                    (1-pF[0,0])*((Nwc-1)*eps1+Nwd*eps)+
-                                    (1-pF[1,0])*(Nsc*eps1+(Nsd-1)*eps)+
-                                    pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*(Ns-1)*(eps1**2+eps**2)
-                                ) + 
-                                (fs/(fw+fs))*(
-                                    (1-pF[0,1])*((Nwc-1)*eps1+Nwd*eps)+
-                                    (1-pF[1,1])*(Nsc*eps1+(Nsd-1)*eps)+
-                                    pF[0,1]*(Nw-1)*(2*eps1*eps)+pF[1,1]*(Ns-1)*(2*eps1*eps)                                    
-                                )
-                            )
-                        )+
-                        ((Nsc/Ns)*(Nwd/Nw))*( # one strong cooperator one weak defector
-                            eps1+eps +
-                            (
-                                (fw/(fw+fs))*(
-                                    (1-pF[0,0])*(Nwc*eps1+(Nwd-1)*eps)+
-                                    (1-pF[1,0])*((Nsc-1)*eps1+Nsd*eps)+
-                                    pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
-                                ) + 
-                                (fs/(fw+fs))*(
-                                    (1-pF[0,1])*(Nwc*eps1+(Nwd-1)*eps)+
-                                    (1-pF[1,1])*((Nsc-1)*eps1+Nsd*eps)+
-                                    pF[0,1]*(Nw-1)*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)                                    
-                                )
-                            )
-                        )                                                                                    
-                    )                
+                        )
 
-                benefit = (
-                    (pW**N)*benefit_ww + # everyone is weak
-                    (pS**N)*benefit_ss + # everyone is strong
-                    ((pW**(N-1)*pS*N))*( # one strong everyone else weak
-                        (((N-1)*fw)/((N-1)*fw+fs)*((N-2)*fw)/((N-2)*fw+fs))*benefit_ww +
-                        (((N-1)*fw)/((N-1)*fw+fs)*(fs)/((N-2)*fw+fs))*benefit_sw+
-                        ((fs)/((N-1)*fw+fs)*((N-1)*fw)/((N-1)*fw))*benefit_sw
-                    )+
-                    ((pS**(N-1)*pW*N))*( # one weak everyone else strong
-                        (((N-1)*fs)/((N-1)*fs+fw)*((N-2)*fs)/((N-2)*fs+fw))*benefit_ss +
-                        (((N-1)*fs)/((N-1)*fs+fw)*(fw)/((N-2)*fs+fw))*benefit_sw+
-                        ((fw)/((N-1)*fs+fw)*((N-1)*fs)/((N-1)*fs))*benefit_sw
-                    )
-                )
+                    if Nsc >= 2:
+                        benefit_ss += prob*prob_ss*(
+                            ((Nsc/Ns)*((Nsc-1)/(Ns-1)))*( # both leaders are cooperators
+                                eps1*2 + 
+                                (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
+                                (1-pF[1,1])*((Nsc-2)*eps1 + Nsd*eps)+
+                                pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)
+                            )
+                        )
 
-                for nums in range(2, N-1):
-                    numw = N - nums
-                    benefit += (pW**numw * pS**nums)*(math.factorial(N)/(math.factorial(nums)*math.factorial(N-nums)))*(
-                        ((numw*fw)/(numw*fw+nums*fs)*((numw-1)*fw)/((numw-1)*fw+nums*fs))*benefit_ww+
-                        ((nums*fs)/(numw*fw+nums*fs)*((nums-1)*fs)/(numw*fw+(nums-1)*fs))*benefit_ss+
-                        ((numw*fw)/(numw*fw+nums*fs)*(nums*fs)/((numw-1)*fw+nums*fs))*benefit_sw+
-                        ((nums*fs)/(numw*fs+nums*fs)*(numw*fw)/(numw*fw+(nums-1)*fs))*benefit_sw
-                    )
+                    if Nsd >= 2:
+                        benefit_ss += prob*prob_ss*(
+                            ((Nsd/Ns)*((Nsd-1)/(Ns-1)))*( # both leaders are defectors
+                                eps*2 + 
+                                (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
+                                (1-pF[1,1])*(Nsc*eps1 + (Nsd-2)*eps)+
+                                pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-2)*(2*eps*eps1)
+                            )
+                        )
+                    
+                    if Nsc >= 1 and Nsd >= 1:
+                        benefit_ss += prob*prob_ss*(
+                            ((Nsc/Ns)*(Nsd/(Ns-1)))*2*( # one cooperator one defector
+                                eps1+eps +
+                                (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
+                                (1-pF[1,1])*((Nsc-1)*eps1 + (Nsd-1)*eps)+
+                                (1/2)*(pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-2)*(eps1**2+eps**2)) + # choose cooperating leader
+                                (1/2)*(pF[0,1]*Nw*(2*eps*eps1)+pF[1,1]*(Ns-2)*(2*eps*eps1)) # choose defecting leader
+                            )
+                        )
+
+                    if Nsc >= 1 and Nwc >= 1:
+                        benefit_sw += prob*prob_sw*(
+                            ((Nsc/Ns)*(Nwc/Nw))*( # both leaders are cooperators
+                                eps1*2 +
+                                (
+                                    (fw/(fw+fs))*(
+                                        (1-pF[0,0])*((Nwc-1)*eps1+Nwd*eps)+
+                                        (1-pF[1,0])*((Nsc-1)*eps1+Nsd*eps)+
+                                        pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*(Ns-1)*(eps1**2+eps**2)
+                                    ) + 
+                                    (fs/(fw+fs))*(
+                                        (1-pF[0,1])*((Nwc-1)*eps1+Nwd*eps)+
+                                        (1-pF[1,1])*((Nsc-1)*eps1+Nsd*eps)+
+                                        pF[0,1]*(Nw-1)*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)                                    
+                                    )
+                                )
+                            )
+                        )
+
+                    if Nsd >= 1 and Nwd >= 1:
+                        benefit_sw += prob*prob_sw*(
+                            ((Nsd/Ns)*(Nwd/Nw))*( # both leaders are defectors
+                                eps*2 +
+                                (
+                                    (fw/(fw+fs))*(
+                                        (1-pF[0,0])*(Nwc*eps1+(Nwd-1)*eps)+
+                                        (1-pF[1,0])*(Nsc*eps1+(Nsd-1)*eps)+
+                                        pF[0,0]*(Nw-1)*(2*eps1*eps)+pF[1,0]*(Ns-1)*(2*eps1*eps)
+                                    ) + 
+                                    (fs/(fw+fs))*(
+                                        (1-pF[0,1])*(Nwc*eps1+(Nwd-1)*eps)+
+                                        (1-pF[1,1])*(Nsc*eps1+(Nsd-1)*eps)+
+                                        pF[0,1]*(Nw-1)*(2*eps1*eps)+pF[1,1]*(Ns-1)*(2*eps1*eps)                                    
+                                    )
+                                )
+                            )
+                        )
+                    
+                    if Nwc >= 1 and Nsd >= 1:
+                        benefit_sw += prob*prob_sw*(
+                            ((Nsd/Ns)*(Nwc/Nw))*( # one weak cooperator one strong defector
+                                eps1+eps +
+                                (
+                                    (fw/(fw+fs))*(
+                                        (1-pF[0,0])*((Nwc-1)*eps1+Nwd*eps)+
+                                        (1-pF[1,0])*(Nsc*eps1+(Nsd-1)*eps)+
+                                        pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*(Ns-1)*(eps1**2+eps**2)
+                                    ) + 
+                                    (fs/(fw+fs))*(
+                                        (1-pF[0,1])*((Nwc-1)*eps1+Nwd*eps)+
+                                        (1-pF[1,1])*(Nsc*eps1+(Nsd-1)*eps)+
+                                        pF[0,1]*(Nw-1)*(2*eps1*eps)+pF[1,1]*(Ns-1)*(2*eps1*eps)                                    
+                                    )
+                                )
+                            )
+                        )
+                    
+                    if Nwd >= 1 and Nsc >= 1:
+                        benefit_sw += prob*prob_sw*(
+                            ((Nsc/Ns)*(Nwd/Nw))*( # one strong cooperator one weak defector
+                                eps1+eps +
+                                (
+                                    (fw/(fw+fs))*(
+                                        (1-pF[0,0])*(Nwc*eps1+(Nwd-1)*eps)+
+                                        (1-pF[1,0])*((Nsc-1)*eps1+Nsd*eps)+
+                                        pF[0,0]*(Nw)*(2*eps1*eps)+pF[1,0]*(Ns)*(2*eps1*eps)
+                                    ) + 
+                                    (fs/(fw+fs))*(
+                                        (1-pF[0,1])*(Nwc*eps1+(Nwd-1)*eps)+
+                                        (1-pF[1,1])*((Nsc-1)*eps1+Nsd*eps)+
+                                        pF[0,1]*(Nw-1)*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)                                    
+                                    )
+                                )
+                            )
+                        )
+
+                benefit = benefit_ww + benefit_ss + benefit_sw
 
                 benefit /= N
                 

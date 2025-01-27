@@ -11,19 +11,18 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,deltaLv,f,betaF):
 
     MAT = np.zeros((len(rv), len(deltaLv), len(pSv), 4))
 
-    for idr, r, in enumerate(rv):
-        for iddl, deltaL in enumerate(deltaLv):
-            deltaF=deltaL
-            for idps, pS in enumerate(pSv):
-                pF=np.zeros((2,2))
-                pF[0,0] = 1/(1+np.exp(-betaF*(f)))
-                pF[1,1] = 1/(1+np.exp(-betaF*(f)))
-                pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
-                pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
+    for iddl, deltaL in enumerate(deltaLv):
+        deltaF=deltaL
+        for idps, pS in enumerate(pSv):
+            pF=np.zeros((2,2))
+            pF[0,0] = 1/(1+np.exp(-betaF*(f)))
+            pF[1,1] = 1/(1+np.exp(-betaF*(f)))
+            pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
+            pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
 
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
-                #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
-                print(r,pS)
+            WCD=calcWCD(N,eps,pF,deltaL,pS,M)
+            print(deltaL, pS)
+            for idr, r, in enumerate(rv):
                 SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
                 MAT[idr, iddl, idps] = SD[:,0]
     return MAT

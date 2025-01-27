@@ -10,17 +10,17 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltav):
 
     MAT = np.zeros((len(deltav), len(pSv), len(rv), 4))
 
-    for idr, r in enumerate(rv):
-        for iddl, deltaL in enumerate(deltav):
-            deltaF = deltaL
-            pF=np.zeros((2,2))
-            pF[0,0] = 1/(1+np.exp(-betaF*(f)))
-            pF[1,1] = 1/(1+np.exp(-betaF*(f)))
-            pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
-            pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
-            for idps, pS in enumerate(pSv):
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
-                print(deltaF,deltaL,pS)
+    for iddl, deltaL in enumerate(deltav):
+        deltaF = deltaL
+        pF=np.zeros((2,2))
+        pF[0,0] = 1/(1+np.exp(-betaF*(f)))
+        pF[1,1] = 1/(1+np.exp(-betaF*(f)))
+        pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
+        pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
+        for idps, pS in enumerate(pSv):
+            WCD=calcWCD(N,eps,pF,deltaL,pS,M)
+            print(deltaL, pS)
+            for idr, r in enumerate(rv):
                 SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
                 best_s = np.argmax(SD)
                 if SD[best_s] >= 0.5:
@@ -169,9 +169,9 @@ if __name__ == "__main__":
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
     labfilenpy='./2leaders/heterogeneous_leader_M0_f0_dfdlrps_alt'
-    # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
-    # np.save(labfilenpy,MAT)             # save matrix for heatmap
-    # print('data saved to file!')
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
+    np.save(labfilenpy,MAT)             # save matrix for heatmap
+    print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
     plotCOOPheat(MAT,deltaLv,pSv,rv,labfilenpy)      # plot heatmap
