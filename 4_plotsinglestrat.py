@@ -41,7 +41,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     fntsize=13
     nr=2
     nc=2
-    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,5))
+    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(15,5))
     f.subplots_adjust(hspace=0.2, wspace=0.2)
     r=0
     labels = ['ALLD', 'WCSD', 'WDSC', 'ALLC']
@@ -141,13 +141,13 @@ if __name__ == "__main__":
 
     deltaFv=np.linspace(0,8,num=50)
     pSv=np.linspace(0.,1.,num=50)
-    rv=[5,6,7]
+    rv=np.linspace(1,10,10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='results/h4/ps/heterogeneous_leader_M0_f0_dfdlrps_sstrat'
-    # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaFv)
-    # np.save(labfilenpy,MAT)             # save matrix for heatmap
-    # print('data saved to file!')
+    labfilenpy='newtests/heterogeneous_leader_M0_f0_dfdlrps_sstrat'
+    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaFv)
+    np.save(labfilenpy,MAT)             # save matrix for heatmap
+    print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
     plotCOOPheat(MAT,deltaFv,pSv,rv,labfilenpy)      # plot heatmap
