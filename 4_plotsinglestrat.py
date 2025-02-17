@@ -13,22 +13,16 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltaFv):
     for iddf, deltaF in enumerate(deltaFv):
         pF=np.zeros((2,2))
 
-        # pF[0,0] = 1/(1+np.exp(-betaF*(f+deltaF)))
-        # pF[1,1] = 1/(1+np.exp(-betaF*(f-deltaF)))
-        # pF[0,1] = 1/(1+np.exp(-betaF*(f+2*deltaF)))
-        # pF[1,0] = 1/(1+np.exp(-betaF*(f-2*deltaF)))
-
         pF[0,0] = 1/(1+np.exp(-betaF*(f)))
         pF[1,1] = 1/(1+np.exp(-betaF*(f)))
         pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
         pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
 
         deltaL = deltaF
-        for idr, r in enumerate(rv):
-            for idps, pS in enumerate(pSv):
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
-                #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
-                print(deltaF,deltaL,pS)
+        for idps, pS in enumerate(pSv):
+            WCD=calcWCD(N,eps,pF,deltaL,pS,M)
+            print(deltaF, pS)
+            for idr, r in enumerate(rv):
                 SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
                 MAT[iddf, idps, idr, :] = SD[:,0]
     return MAT
@@ -64,7 +58,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label):
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
         if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
     
-    f.savefig('multileader_single_strategies_r7.png',bbox_inches='tight',dpi=300)
+    f.savefig(f'./newtests/2bits/multileader/singlestrat_2bits_multileader_r{r}.png',bbox_inches='tight',dpi=300)
     plt.show()
     return
 
@@ -137,12 +131,12 @@ if __name__ == "__main__":
     rv=np.linspace(1, 10, 10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='results/h4/ps/heterogeneous_leader_M0_f0_dfdlrps_sstrat_multi'
+    labfilenpy='./newtests/2bits/multileader/singlestrat_2bits_multileader'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaFv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
-    plotCOOPheat(MAT,deltaFv,pSv,6,labfilenpy)      # plot heatmap
+    plotCOOPheat(MAT,deltaFv,pSv,10,labfilenpy)      # plot heatmap
     #plotsingleheat(MAT,fv,rv,labfilenpy)
 #####################################################

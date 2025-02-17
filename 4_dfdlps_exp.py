@@ -10,17 +10,17 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltav):
 
     MAT = np.zeros((len(deltav), len(pSv), len(rv), 4))
 
-    for idr, r in enumerate(rv):
-        print(r)
-        for iddl, deltaL in enumerate(deltav):
-            deltaF = deltaL
-            pF=np.zeros((2,2))
-            pF[0,0] = 1/(1+np.exp(-betaF*(f)))
-            pF[1,1] = 1/(1+np.exp(-betaF*(f)))
-            pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
-            pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
-            for idps, pS in enumerate(pSv):
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
+    for iddl, deltaL in enumerate(deltav):
+        deltaF = deltaL
+        pF=np.zeros((2,2))
+        pF[0,0] = 1/(1+np.exp(-betaF*(f)))
+        pF[1,1] = 1/(1+np.exp(-betaF*(f)))
+        pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
+        pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
+        for idps, pS in enumerate(pSv):
+            WCD=calcWCD(N,eps,pF,deltaL,pS,M)
+            print(deltaL, pS)
+            for idr, r in enumerate(rv):
                 SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
                 best_s = np.argmax(SD)
                 if SD[best_s] >= 0.5:
@@ -92,7 +92,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
 
 #cb=f.colorbar(h, fraction=0.1,format='%.2f')
     #cb.set_label(label=r'$f_C$')
-    f.savefig('./multileader/multi_sd_N9.png',bbox_inches='tight',dpi=300)
+    f.savefig('./newtests/2bits/multileader/multi_sd.png',bbox_inches='tight',dpi=300)
     #plt.show()
     f.clf()     
     return
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     rv=np.linspace(1,10,num=10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='./multileader/multi_leader_M0_N9_f0_dfdlrps'
+    labfilenpy='./newtests/2bits/multileader/multisd_2bits_multileader'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')
