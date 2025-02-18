@@ -1,6 +1,6 @@
 import numpy as np
 import evoEGT as evo
-from heterogeneous4 import calcH, calcWCD
+from heterogeneous4_leaderstrat import calcH, calcWCD
 
 def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltaFv):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
@@ -12,23 +12,16 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltaFv):
 
     for iddf, deltaF in enumerate(deltaFv):
         pF=np.zeros((2,2))
-
-        # pF[0,0] = 1/(1+np.exp(-betaF*(f+deltaF)))
-        # pF[1,1] = 1/(1+np.exp(-betaF*(f-deltaF)))
-        # pF[0,1] = 1/(1+np.exp(-betaF*(f+2*deltaF)))
-        # pF[1,0] = 1/(1+np.exp(-betaF*(f-2*deltaF)))
-
         pF[0,0] = 1/(1+np.exp(-betaF*(f)))
         pF[1,1] = 1/(1+np.exp(-betaF*(f)))
         pF[0,1] = 1/(1+np.exp(-betaF*(f+deltaF)))
         pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
 
         deltaL = deltaF
-        for idr, r in enumerate(rv):
-            for idps, pS in enumerate(pSv):
-                WCD=calcWCD(N,eps,pF,deltaL,pS,M)
-                #Wgen=transfW2Wgen(WCD) # transforming to evoEGT format
-                print(deltaF,deltaL,pS)
+        for idps, pS in enumerate(pSv):
+            WCD=calcWCD(N,eps,pF,deltaL,pS,M)
+            print(deltaF, pS)
+            for idr, r in enumerate(rv):
                 SD,fixM = evo.Wgroup2SD(WCD,H,[r,-1.],beta,infocheck=False)
                 MAT[iddf, idps, idr, :] = SD[:,0]
     return MAT
@@ -41,38 +34,38 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
     fntsize=13
     nr=2
     nc=2
-    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(15,5))
-    f.subplots_adjust(hspace=0.2, wspace=0.2)
-    r=0
-    labels = ['ALLD', 'WCSD', 'WDSC', 'ALLC']
-    for strat in range(4):
-        i = strat // nc
-        j = strat % nc
+    labels = ['ALLD', 'NCLD', 'NDLC', 'ALLC']
+    for r in rv:
+        r = int(r)
+        f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,5))
+        f.subplots_adjust(hspace=0.2, wspace=0.2)
+        for strat in range(4):
+            i = strat // nc
+            j = strat % nc
 
-        ax=axs[i,j]
-        cmaps=['Greens','Reds','Blues','Purples']
-        step=0.025
-        levels = np.arange(0, 1., step) + step
-        h=ax.contourf(MAT[:,:,r,strat],levels,cmap=cmaps[strat], origin='lower',)
-        #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
-        nticksY=5
-        nticksX=3
-        ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
-        ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
-        ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=10)
-        ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=10)
-        ax.text(17.5,50,labels[strat], size=fntsize)
-        if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
-        if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
+            ax=axs[i,j]
+            cmaps=['Greens','Reds','Blues','Purples']
+            step=0.025
+            levels = np.arange(0, 1., step) + step
+            h=ax.contourf(MAT[:,:,r-1,strat],levels,cmap=cmaps[strat], origin='lower',)
+            #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
+            nticksY=5
+            nticksX=3
+            ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
+            ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
+            ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=10)
+            ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=10)
+            ax.text(17.5,50,labels[strat], size=fntsize)
+            if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
+            if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
 
-        # insert markers for invasion graphs
-        points_x = [MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5]
-        points_y = [0.7, MAT.shape[0] // 8 - 0.5, MAT.shape[0] // 4 - 0.5]
-        ax.scatter(points_x, points_y, color='goldenrod', marker='o')
-    
-    f.savefig('figures/single_strategies_r5.png',bbox_inches='tight',dpi=300)
-    plt.show()
-    f.clf()     
+            # insert markers for invasion graphs
+            # points_x = [MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5, MAT.shape[1] // 2 - 0.5]
+            # points_y = [0.7, MAT.shape[0] // 8 - 0.5, MAT.shape[0] // 4 - 0.5]
+            # ax.scatter(points_x, points_y, color='goldenrod', marker='o')
+        
+        f.savefig(f'newtests/2bits/leadstrat/singleleader/single_strategies_r{r}.png',bbox_inches='tight',dpi=300)
+        f.clf()     
     return
 
 def plotsingleheat(MAT,fv,rv,label):
@@ -144,7 +137,7 @@ if __name__ == "__main__":
     rv=np.linspace(1,10,10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='newtests/heterogeneous_leader_M0_f0_dfdlrps_sstrat'
+    labfilenpy='newtests/2bits/leadstrat/singleleader/dfdlrps_singlestrat'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaFv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')

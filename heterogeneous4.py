@@ -57,9 +57,9 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
         s1=[i%2,i//2] # s:[w,s], 0:[0,0], 1:[1,0], 2:[0,1], 3:[1,1]
         for j in range(4):
             s2=[j%2,j//2]
-            benefit = 0
-            cost = 0
             for k in range(1,N): # k number of cooperators
+                benefit = 0
+                cost = 0
                 for Ns in range(N+1):
                     Nw = N - Ns
                     pNs = math.factorial(N)/(math.factorial(Ns)*math.factorial(Nw)) * pS**Ns * pW**Nw                    
@@ -136,9 +136,9 @@ def calcWCD(N,eps,pF,deltaL,pS,M):
                         benefit += pNs*prob*(((Nw*fw)/(Nw*fw+Ns*fs))*benefit_w + ((Ns*fs)/(Nw*fw+Ns*fs))*benefit_s)
                         cost += pNs*prob*(((Nw*fw)/(Nw*fw+Ns*fs))*cost_w + ((Ns*fs)/(Nw*fw+Ns*fs))*cost_s)
 
-            if benefit > M:
-                WCD[i,j,k,0] = benefit/N
-            WCD[i,j,k,1] = cost                            
+                if benefit > M:
+                    WCD[i,j,k,0] = benefit/N
+                WCD[i,j,k,1] = cost                            
 
             benefit = 0
             cost = 0

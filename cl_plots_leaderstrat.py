@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
 import math
 
-file = 'newtests/2bits/strengthstrat/singleleader/res_2bits_singleleader'
+file = 'newtests/2bits/leadstrat/singleleader/res_2bits_singleleader'
 data = np.load(file + '.npy')
 
 nr = 2
@@ -27,6 +27,10 @@ nticksX=3
 
 cmap = plt.get_cmap('viridis')
 
+def aeps(pact,eps):
+# Input: pact probability to perform the desired action (without error), eps probability of comitting an error 
+# Output: action actually performed 
+    return pact*(1.-2.*eps)+eps
 
 for idr, r in enumerate(rv):
     i = idr // nc
@@ -49,17 +53,17 @@ for idr, r in enumerate(rv):
                 pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
                 
                 benefit = 0
-
-                benefit = 0
+                cost = 0
                 for Ns in range(N+1):
                     ns1 = Ns
                     nw1 = N - ns1
                     Nw = N - Ns
                     pNs = math.factorial(N)/(math.factorial(Ns)*math.factorial(Nw)) * pS**Ns * pW**Nw     
-                    Nwc = (N-ns1)*s1[0]
-                    Nsc = ns1*s1[1]
-                    Nwd = (N-ns1)*(1-s1[0])
-                    Nsd = ns1*(1-s1[1])
+
+                    Nwcnl = (N-ns1)*s1[0]
+                    Nscnl = ns1*s1[0]
+                    Nwdnl = (N-ns1)*(1-s1[0])
+                    Nsdnl = ns1*(1-s1[0])
 
                     benefit_s = 0
                     benefit_w = 0
@@ -67,37 +71,28 @@ for idr, r in enumerate(rv):
                     cost_w = 0
 
                     if Nw > 0:
-                        benefit_w = (
-                            (Nwc/Nw)*( # leader is a cooperator
-                                eps1 + 
-                                (1-pF[0,0])*((Nwc-1)*eps1 + Nwd*eps)+
-                                (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                                pF[0,0]*(Nw-1)*(eps1**2+eps**2)+pF[1,0]*Ns*(eps1**2+eps**2)
-                            ) + (Nwd/Nw)*( # leader is a defector
-                                eps + 
-                                (1-pF[0,0])*(Nwc*eps1 + (Nwd-1)*eps)+
-                                (1-pF[1,0])*(Nsc*eps1 + Nsd*eps)+
-                                pF[0,0]*(Nw-1)*(2*eps*eps1) + pF[1,0]*Ns*(2*eps*eps1)
+                        benefit_w += (
+                            (nw1/Nw)*( # leader is of strategy 1
+                                aeps(s1[1], eps) + 
+                                (1-pF[0,0])*((Nwcnl-s1[0])*eps1 + (Nwdnl-(1-s1[0]))*eps)+
+                                (1-pF[1,0])*(Nscnl*eps1 + Nsdnl*eps)+
+                                pF[0,0]*(Nw-1)*(s1[1]*(eps1**2+eps**2) + (1-s1[1])*(2*eps1*eps))
+                                +pF[1,0]*Ns*(s1[1]*(eps1**2+eps**2) + (1-s1[1])*(2*eps1*eps))
                             )
                         )
 
                     if Ns > 0:
-
-                        benefit_s = (
-                            (Nsc/Ns)*( # leader is a cooperator
-                                eps1 + 
-                                (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                                (1-pF[1,1])*((Nsc-1)*eps1 + Nsd*eps)+
-                                pF[0,1]*Nw*(eps1**2+eps**2)+pF[1,1]*(Ns-1)*(eps1**2+eps**2)
-                            ) + (Nsd/Ns)*( # leader is a defector
-                                eps + 
-                                (1-pF[0,1])*(Nwc*eps1 + Nwd*eps)+
-                                (1-pF[1,1])*(Nsc*eps1 + (Nsd-1)*eps)+
-                                pF[0,1]*Nw*(2*eps*eps1) + pF[1,1]*(Ns-1)*(2*eps*eps1)
+                        benefit_s += (
+                            (ns1/Ns)*( # leader is of strategy 1
+                                aeps(s1[1], eps) + 
+                                (1-pF[0,1])*(Nwcnl*eps1 + Nwdnl*eps)+
+                                (1-pF[1,1])*((Nscnl-s1[0])*eps1 + (Nsdnl-(1-s1[0]))*eps)+
+                                pF[0,1]*Nw*(s1[1]*(eps1**2+eps**2) + (1-s1[1])*(2*eps1*eps))
+                                +pF[1,1]*(Ns-1)*(s1[1]*(eps1**2+eps**2) + (1-s1[1])*(2*eps1*eps))
                             )
                         )
 
-                    benefit += pNs*(((Nw*fw)/(Nw*fw+Ns*fs))*benefit_w + ((Ns*fs)/(Nw*fw+Ns*fs))*benefit_s)
+                        benefit += pNs*(((Nw*fw)/(Nw*fw+Ns*fs))*benefit_w + ((Ns*fs)/(Nw*fw+Ns*fs))*benefit_s)
 
                 res[idps] += (benefit/N) * data[idr, iddl, idps, strat]
             
@@ -119,6 +114,6 @@ legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv))),
                           markerfacecolor=cmap((idx)/(len(deltaLv))), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(-2.1, -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('newtests/2bits/strengthstrat/singleleader/clplots.png', bbox_inches='tight', dpi=300)
+plt.savefig('newtests/2bits/leadstrat/singleleader/clplots.png', bbox_inches='tight', dpi=300)
 
 plt.show()

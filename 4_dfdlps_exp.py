@@ -1,6 +1,6 @@
 import numpy as np
 import evoEGT as evo
-from heterogeneous4 import calcH, calcWCD
+from heterogeneous4_leaderstrat import calcH, calcWCD
 
 def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltav):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
@@ -69,7 +69,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
         #     points_y = [0.5, MAT.shape[0] // 8 - 0.5, MAT.shape[0] // 4 - 0.5]
         #     ax.scatter(points_x, points_y, color='goldenrod', marker='o')
     
-    labels = ['ALLD', 'WCSD', 'WDSC', 'ALLC']
+    labels = ['ALLD', 'NCLD', 'NDLC', 'ALLC']
     patches = [mpatches.Patch(color=plt.get_cmap(cmaps[i])(0.9), label=labels[i]) for i in range(4)]
     plt.legend(handles=patches, loc='upper center', bbox_to_anchor=(-1.9 , -0.5),
           fancybox=True, shadow=False, ncol=4, fontsize=20, columnspacing=1)
@@ -92,7 +92,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
 
 #cb=f.colorbar(h, fraction=0.1,format='%.2f')
     #cb.set_label(label=r'$f_C$')
-    f.savefig('newtests/res_2bits_singleleader_multisd_plots.png',bbox_inches='tight',dpi=300)
+    f.savefig('newtests/2bits/leadstrat/singleleader/multisd.png',bbox_inches='tight',dpi=300)
     #plt.show()
     f.clf()     
     return
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     rv=np.linspace(1, 10, 10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='newtests/res_2bits_singleleader_deltaps'
+    labfilenpy='newtests/2bits/leadstrat/singleleader/res_2bits_singleleader_deltaps'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')
