@@ -1,7 +1,7 @@
 import numpy as np
 import evoEGT as evo
 from heterogeneous4 import calcH, calcWCD
-from noleadermodel import calcWCD as calcWCDnoleader
+from noleadermodel4 import calcWCD as calcWCDnoleader
 
 def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,deltav,f,betaF):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
