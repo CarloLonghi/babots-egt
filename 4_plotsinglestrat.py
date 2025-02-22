@@ -1,6 +1,6 @@
 import numpy as np
 import evoEGT as evo
-from heterogeneous4 import calcH, calcWCD
+from heterogeneous2 import calcH, calcWCD
 
 def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltaFv):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
@@ -8,7 +8,7 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltaFv):
     if np.isscalar(HZ):
         H=calcH(N-1,HZ-1)
 
-    MAT = np.zeros((len(deltaFv), len(pSv), len(rv), 4))
+    MAT = np.zeros((len(deltaFv), len(pSv), len(rv), 2))
 
     for iddf, deltaF in enumerate(deltaFv):
         pF=np.zeros((2,2))
@@ -27,39 +27,40 @@ def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,f,betaF,deltaFv):
                 MAT[iddf, idps, idr, :] = SD[:,0]
     return MAT
 
-def plotCOOPheat(MAT,deltaFv,pSv,r,label):
+def plotCOOPheat(MAT,deltaFv,pSv,rv,label):
 # Input: MAT (matrix from "coop_pF_r" function), pFv, rv ,Mv (vectors with values of pF, r, and M), label (name for the output file)
 # Output: heatmap plot of the fraction of cooperators as a function of pF and r, for different M
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
     fntsize=13
-    nr=2
+    nr=1
     nc=2
-    f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,5))
-    f.subplots_adjust(hspace=0.2, wspace=0.2)
-    labels = ['ALLD', 'WCSD', 'WDSC', 'ALLC']
-    for strat in range(4):
-        i = strat // nc
-        j = strat % nc
+    for r in rv:
+        r = int(r)
+        f,axs=plt.subplots(nrows=nr, ncols=nc, sharex='all', sharey='all', figsize=(5,2))
+        f.subplots_adjust(hspace=0.2, wspace=0.2)
+        labels = ['ALLD', 'ALLC']
+        for strat in range(2):
+            i = strat // nc
+            j = strat % nc
 
-        ax=axs[i,j]
-        cmaps=['Greens','Reds','Blues','Purples']
-        step=0.025
-        levels = np.arange(0, 1., step) + step
-        h=ax.contourf(MAT[:,:,r-1,strat],levels,cmap=cmaps[strat], origin='lower',)
-        #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
-        nticksY=5
-        nticksX=3
-        ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
-        ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
-        ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=10)
-        ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=10)
-        ax.text(17.5,50,labels[strat], size=fntsize)
-        if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
-        if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
-    
-    f.savefig(f'./newtests/2bits/multileader/singlestrat_2bits_multileader_r{r}.png',bbox_inches='tight',dpi=300)
-    plt.show()
+            ax=axs[strat]
+            cmaps=['Greens','Purples']
+            step=0.025
+            levels = np.arange(0, 1., step) + step
+            h=ax.contourf(MAT[:,:,r-1,strat],levels,cmap=cmaps[strat], origin='lower',)
+            #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
+            nticksY=5
+            nticksX=3
+            ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
+            ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
+            ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=10)
+            ax.set_yticklabels(np.linspace(deltaFv[0],deltaFv[-1],nticksY), fontsize=10)
+            ax.text(17.5,50,labels[strat], size=fntsize)
+            if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
+            if j==0: ax.set_ylabel(r'$\Delta_f, \Delta_l$', fontsize=fntsize)
+        
+        f.savefig(f'./newtests/1bit/leadership/multileader/singlestrat_2bits_multileader_r{r}.png',bbox_inches='tight',dpi=300)
     return
 
 # def plotsingleheat(MAT,fv,rv,label):
@@ -131,12 +132,12 @@ if __name__ == "__main__":
     rv=np.linspace(1, 10, 10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='./newtests/2bits/multileader/singlestrat_2bits_multileader'
+    labfilenpy='./newtests/1bit/leadership/multileader/singlestrat_2bits_multileader'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaFv)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
-    plotCOOPheat(MAT,deltaFv,pSv,10,labfilenpy)      # plot heatmap
+    plotCOOPheat(MAT,deltaFv,pSv,rv,labfilenpy)      # plot heatmap
     #plotsingleheat(MAT,fv,rv,labfilenpy)
 #####################################################
