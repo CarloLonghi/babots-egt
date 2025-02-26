@@ -92,7 +92,7 @@ for idr, r in enumerate(rv):
                             )
                         )
 
-                        benefit += pNs*(((Nw*fw)/(Nw*fw+Ns*fs))*benefit_w + ((Ns*fs)/(Nw*fw+Ns*fs))*benefit_s)
+                    benefit += pNs*(((Nw*fw)/(Nw*fw+Ns*fs))*benefit_w + ((Ns*fs)/(Nw*fw+Ns*fs))*benefit_s)
 
                 res[idps] += (benefit/N) * data[idr, iddl, idps, strat]
             

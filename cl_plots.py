@@ -49,8 +49,6 @@ for idr, r in enumerate(rv):
                 pF[1,0] = 1/(1+np.exp(-betaF*(f-deltaF)))
                 
                 benefit = 0
-
-                benefit = 0
                 for Ns in range(N+1):
                     ns1 = Ns
                     nw1 = N - ns1
