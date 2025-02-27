@@ -6,7 +6,7 @@ import math
 def gaussian(x, mu, sig):
     return np.exp(-((x - mu) ** 2) / (2 * (sig ** 2))) / (np.sqrt(2 * np.pi) * sig)
 
-file = './newtests/2bits/leadstrat/multileader/res_2bits_multileader'
+file = './newtests/2bits/leadstrat/multileader/res_new'
 data = np.load(file + '.npy')
 
 nr = 2
@@ -120,7 +120,7 @@ for idr, r in enumerate(rv):
         ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=12)
         ax.set_yticks(np.linspace(0, 1, 3))
         ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
-        #ax.set_ylim(0.0, 1.0)
+        ax.set_ylim(0.0, 1.0)
         ax.plot(res, label='$\Delta_f=\Delta_f=%d$'%deltaF, color=cmap((iddl)/(len(deltaLv))))
 
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
@@ -132,6 +132,6 @@ legend_elements += [Line2D([], [], marker='s', color=cmap((idx)/(len(deltaLv))),
                           markerfacecolor=cmap((idx)/(len(deltaLv))), markersize=10, linestyle='None') for idx in range(len(deltaLv))]
 plt.legend( loc='upper center', bbox_to_anchor=(-2., -0.6),
           fancybox=True, shadow=False, ncol=7, columnspacing=0.0, handles=legend_elements,handletextpad=-0.3,fontsize=13)
-plt.savefig('./newtests/2bits/leadstrat/multileader/cl_plots.png', bbox_inches='tight', dpi=300)
+plt.savefig('./newtests/2bits/leadstrat/multileader/cl_plots_new.png', bbox_inches='tight', dpi=300)
 
 plt.show()

@@ -49,7 +49,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label,strategies):
         j = ids % 4
 
         ax=axs[i,j]
-        h=ax.contourf(np.sum(MAT[:,:,r-1,strat],axis=-1),levels,cmap=cmaps[ids%4], origin='lower',)
+        h=ax.contourf(np.sum(MAT[:,:,r-1,strat],axis=-1),levels,cmap=cmaps[ids//4], origin='lower',)
         #h=ax.imshow(MAT[:,:,k],origin='lower', interpolation='none',aspect='auto',vmin=0,vmax=4)
         ax.set_xticks(np.linspace(0, MAT.shape[1]-1, nticksX))
         ax.set_yticks(np.linspace(0, MAT.shape[0]-1, nticksY))
@@ -102,7 +102,7 @@ def plotCOOPheat(MAT,deltaFv,pSv,r,label,strategies):
     
     ax.text(-99, 275, f"r={r}",size=18)
     f.delaxes(axs[nr-1, nc-1])
-    f.savefig(f'newtests/4bits/multileader/aggregates_strategies_r{r}_lead.png',bbox_inches='tight',dpi=300)
+    f.savefig(f'newtests/4bits/multileader/aggregates_strategies_r{r}_lead_new.png',bbox_inches='tight',dpi=300)
     #plt.show()
     return
 
@@ -175,21 +175,13 @@ if __name__ == "__main__":
     rv=np.linspace(1,10,num=10)
     
     # labfilenpy='results/h4/ps/sfmodel_4strats_M0_dl8_f0_dfpsr'
-    labfilenpy='./newtests/4bits/multileader/singlestrat'
-    MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
-    np.save(labfilenpy,MAT)             # save matrix for heatmap
-    print('data saved to file!')
+    labfilenpy='./newtests/4bits/multileader/singlestrat_new'
+    # MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,f,betaF,deltaLv)
+    # np.save(labfilenpy,MAT)             # save matrix for heatmap
+    # print('data saved to file!')
     
     MAT=np.load(labfilenpy+'.npy')      # load matrix for heatmap 
-    # strategies = np.array([
-        # [0,1,2,3],
-        # [4,5,6,7],
-        # [8,9,10,11],
-        # [12,13,14,15]])
-    strategies = np.array([[0,4,8,12],
-        [1,5,9,13],
-        [2,6,10,14],
-        [3,7,11,15]])    
+   
     strategies = np.array([[i,] for i in range(16)])
     for r in rv:
         plotCOOPheat(MAT,deltaLv,pSv,int(r),labfilenpy,strategies)      # plot heatmap

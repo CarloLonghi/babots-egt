@@ -1,7 +1,6 @@
 import numpy as np
 import evoEGT as evo
-from heterogeneous4 import calcH, calcWCD
-from noleadermodel import calcWCD as calcWCDnoleader
+from heterogeneous4_leaderstrat import calcH, calcWCD
 
 def coop_pF_r(rv,M,N,HZ,beta,eps,pSv,deltaLv,f,betaF):
 # Input: pFv, rv, Mv (vectors with values of pF, r, and M), N, HZ (H or Z), beta, eps
@@ -107,7 +106,7 @@ if __name__ == "__main__":
     pSv=np.linspace(0,1.,num=50)
     rv=np.linspace(1,10,num=10)
     
-    labfilenpy='./newtests/2bits/multileader/res_2bits_multileader'
+    labfilenpy='./newtests/2bits/leadstrat/multileader/res_new'
     MAT=coop_pF_r(rv,M,N,Z,beta,eps,pSv,deltaLv,f,betaF)
     np.save(labfilenpy,MAT)             # save matrix for heatmap
     print('data saved to file!')

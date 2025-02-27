@@ -120,7 +120,7 @@ for idr, r in enumerate(rv):
         ax.set_xticklabels(np.linspace(pSv[0],pSv[-1],nticksX), fontsize=12)
         ax.set_yticks(np.linspace(0, 1, 3))
         ax.set_yticklabels(np.linspace(0,1,3), fontsize=12)
-        #ax.set_ylim(0.0, 1.0)
+        ax.set_ylim(0.0, 1.0)
         ax.plot(res, label='$\Delta_f=\Delta_f=%d$'%deltaF, color=cmap((iddl)/(len(deltaLv))))
 
         if i==nr-1: ax.set_xlabel(r'$p_s$', fontsize=fntsize)
